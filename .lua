@@ -1,3 +1,4 @@
+--V2
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -527,13 +528,13 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0,0,1,-1)
     }), "Stroke")
 
-    local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
-        Size = UDim2.new(1,-130,1,0),
-        Position = UDim2.new(0,12,0,0),
-        Font = Enum.Font.GothamBlack,
-        TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Left
-    }), "Text")
+local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
+    Size = UDim2.new(1,0,1,0),
+    Position = UDim2.new(0,0,0,0),
+    Font = Enum.Font.GothamBlack,
+    TextSize = 16,
+    TextXAlignment = Enum.TextXAlignment.Center
+}), "Text")
 
     local BannerIconLabel = nil
     if WindowConfig.BannerIcon then
