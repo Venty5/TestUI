@@ -5,9 +5,6 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- =========================================================
--- MULTI-EXECUTE SCHUTZ
--- =========================================================
 local LOCK_KEY = "VentyLibrary_Active"
 
 for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
@@ -41,9 +38,6 @@ local Library = {
 local TAB_HEIGHT = 36
 local TAB_PADDING = 14
 
--- =========================================================
--- ScreenGui erstellen + Lock-Marker
--- =========================================================
 local Container = Instance.new("ScreenGui")
 Container.Name = string.char(math.random(65, 90))..tostring(math.random(100, 999))
 Container.DisplayOrder = 2147483647
@@ -75,9 +69,6 @@ task.spawn(function()
     end
 end)
 
--- =========================================================
--- Draggable / Resizable
--- =========================================================
 local function MakeDraggable(DragPoint, Main)
     local IsResizing = false
     pcall(function()
@@ -146,9 +137,6 @@ local function MakeResizable(ResizeButton, Main, MinSize, MaxSize, SetResizingCa
     end)
 end
 
--- =========================================================
--- Element-Factory
--- =========================================================
 local function Create(Name, Properties, Children)
     local Object = Instance.new(Name)
     for i, v in next, Properties or {} do Object[i] = v end
@@ -243,9 +231,6 @@ local function CheckKey(Table, Key)
     for _, v in next, Table do if v == Key then return true end end
 end
 
--- =========================================================
--- Element-Definitionen
--- =========================================================
 CreateElement("Corner", function(Scale, Offset)
     return Create("UICorner", {CornerRadius = UDim.new(Scale or 0, Offset or 8)})
 end)
@@ -308,9 +293,6 @@ CreateElement("Label", function(Text, TextSize, Transparency)
     })
 end)
 
--- =========================================================
--- Notification-System
--- =========================================================
 local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
     SetProps(MakeElement("List"), {
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -372,9 +354,6 @@ function Library:Init()
     end
 end
 
--- =========================================================
--- LADEBALKEN – KLEINES FENSTER (zentriert, kompakt)
--- =========================================================
 local function ShowLoadingScreen(duration, callback)
     local Overlay = Create("Frame", {
         Parent = Container,
@@ -517,9 +496,6 @@ local function ShowLoadingScreen(duration, callback)
     if callback then callback() end
 end
 
--- =========================================================
--- MakeWindow
--- =========================================================
 function Library:MakeWindow(WindowConfig)
     local FirstTab = true
     local Minimized = false
@@ -546,15 +522,11 @@ function Library:MakeWindow(WindowConfig)
         end)
     end
 
-    -- -------------------------------------------------------
-    -- TopBar-Elemente
-    -- -------------------------------------------------------
     local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(1,0,0,1),
         Position = UDim2.new(0,0,1,-1)
     }), "Stroke")
 
-    -- Fenster-Name LINKS
     local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
         Size = UDim2.new(1,-130,1,0),
         Position = UDim2.new(0,12,0,0),
@@ -563,7 +535,6 @@ function Library:MakeWindow(WindowConfig)
         TextXAlignment = Enum.TextXAlignment.Left
     }), "Text")
 
-    -- Banner-Icon OBEN LINKS (nur wenn gesetzt)
     local BannerIconLabel = nil
     if WindowConfig.BannerIcon then
         BannerIconLabel = SetProps(MakeElement("Image", WindowConfig.BannerIcon), {
@@ -574,12 +545,9 @@ function Library:MakeWindow(WindowConfig)
         })
     end
 
-    -- -------------------------------------------------------
-    -- Buttons: Resize | Minimize | Close  --> GANZ RECHTS
-    -- -------------------------------------------------------
     local CloseBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(0,76,0,0),   -- dritter Slot (0, 36*2+4)
+        Position = UDim2.new(0,76,0,0),
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072725342"), {
@@ -591,7 +559,7 @@ function Library:MakeWindow(WindowConfig)
 
     local MinimizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(0,38,0,0),   -- zweiter Slot
+        Position = UDim2.new(0,38,0,0),
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072719338"), {
@@ -604,7 +572,7 @@ function Library:MakeWindow(WindowConfig)
 
     local ResizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(0,0,0,0),    -- erster Slot
+        Position = UDim2.new(0,0,0,0),
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://117273761878755"), {
@@ -614,10 +582,9 @@ function Library:MakeWindow(WindowConfig)
         }), "Text")
     })
 
-    -- Container für alle 3 Buttons – GANZ RECHTS mit AnchorPoint (1, 0.5)
     local ButtonContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
         Size = UDim2.new(0,108,0,26),
-        Position = UDim2.new(1,-8,0.5,0),   -- ganz rechts, 8px Abstand zum Rand
+        Position = UDim2.new(1,-8,0.5,0),
         AnchorPoint = Vector2.new(1,0.5)
     }), {
         AddThemeObject(MakeElement("Stroke"), "Stroke"),
@@ -632,9 +599,6 @@ function Library:MakeWindow(WindowConfig)
         Size = UDim2.new(1,0,0,46)
     })
 
-    -- -------------------------------------------------------
-    -- TAB-LEISTE
-    -- -------------------------------------------------------
     local TabBar = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 0), {
         Size = UDim2.new(1,0,0,TAB_HEIGHT),
         Position = UDim2.new(0,0,0,46),
@@ -670,9 +634,6 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0,0,0,46+TAB_HEIGHT+1)
     }), "Main")
 
-    -- -------------------------------------------------------
-    -- TopBar zusammenstellen
-    -- -------------------------------------------------------
     local TopBarChildren = {
         WindowName,
         WindowTopBarLine,
@@ -762,9 +723,6 @@ function Library:MakeWindow(WindowConfig)
         MainWindow.Visible = true
     end)
 
-    -- =========================================================
-    -- TabFunction
-    -- =========================================================
     local TabFunction = {}
 
     function TabFunction:MakeTab(TabConfig)
@@ -896,9 +854,6 @@ function Library:MakeWindow(WindowConfig)
             TweenService:Create(TabBtn, TweenInfo.new(0.18,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
         end)
 
-        -- -------------------------------------------------------
-        -- Element-Funktionen
-        -- -------------------------------------------------------
         local function GetElements(ItemParent)
             local ElementFunction = {}
 
@@ -1370,9 +1325,6 @@ function Library:MakeWindow(WindowConfig)
     return TabFunction
 end
 
--- =========================================================
--- Zweites Notification-System
--- =========================================================
 local Configs_HUB = {
     Cor_Hub=Color3.fromRGB(15,15,15), Cor_Options=Color3.fromRGB(15,15,15),
     Cor_Stroke=Color3.fromRGB(60,60,60), Cor_Text=Color3.fromRGB(240,240,240),
@@ -1432,55 +1384,3 @@ function Library:Destroy()
 end
 
 return Library
-
---[[
-==========================================================
-  VERWENDUNGSBEISPIEL / USAGE EXAMPLE
-==========================================================
-
-local Library = loadstring(game:HttpGet("..."))()
-
-local Window = Library:MakeWindow({
-    Name         = "Mein Script",
-    BannerIcon   = "rbxassetid://DEINE_ICON_ID",  -- optional
-    LoadDuration = 3,
-    SaveConfig   = false,
-})
-
-local CombatTab = Window:MakeTab({
-    Name = "Combat",
-    Icon = "rbxassetid://XXXXXXX",
-})
-
-CombatTab:AddToggle({
-    Name     = "Enable Aimbot",
-    Default  = false,
-    Callback = function(v) print(v) end,
-})
-
-local VisualsTab = Window:MakeTab({
-    Name = "Visuals",
-    Icon = "rbxassetid://XXXXXXX",
-})
-
-VisualsTab:AddToggle({
-    Name     = "Enable ESP",
-    Default  = false,
-    Callback = function(v) print(v) end,
-})
-
-Library:Init()
-==========================================================
-
-  ÄNDERUNGEN:
-  ✓ Button-Container (Resize | Minimize | Close) ist jetzt
-    ganz RECHTS in der TopBar:
-      Position    = UDim2.new(1, -8, 0.5, 0)
-      AnchorPoint = Vector2.new(1, 0.5)
-  ✓ Icons sind perfekt zentriert in ihren Boxen:
-      AnchorPoint = Vector2.new(0.5, 0.5)
-      Position    = UDim2.new(0.5, 0, 0.5, 0)
-  ✓ WindowName ist nun linksbündig (passt zur neuen TopBar)
-  ✓ Alle anderen Features bleiben unverändert
-==========================================================
-]]
