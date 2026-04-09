@@ -554,13 +554,13 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0,0,1,-1)
     }), "Stroke")
 
-    -- Fenster-Name ZENTRIERT
+    -- Fenster-Name LINKS
     local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
-        Size = UDim2.new(1,0,1,0),
-        Position = UDim2.new(0,0,0,0),
+        Size = UDim2.new(1,-130,1,0),
+        Position = UDim2.new(0,12,0,0),
         Font = Enum.Font.GothamBlack,
         TextSize = 16,
-        TextXAlignment = Enum.TextXAlignment.Center
+        TextXAlignment = Enum.TextXAlignment.Left
     }), "Text")
 
     -- Banner-Icon OBEN LINKS (nur wenn gesetzt)
@@ -574,9 +574,12 @@ function Library:MakeWindow(WindowConfig)
         })
     end
 
+    -- -------------------------------------------------------
+    -- Buttons: Resize | Minimize | Close  --> GANZ RECHTS
+    -- -------------------------------------------------------
     local CloseBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(1,-42,0,0),
+        Position = UDim2.new(0,76,0,0),   -- dritter Slot (0, 36*2+4)
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072725342"), {
@@ -588,7 +591,7 @@ function Library:MakeWindow(WindowConfig)
 
     local MinimizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(1,-78,0,0),
+        Position = UDim2.new(0,38,0,0),   -- zweiter Slot
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072719338"), {
@@ -601,7 +604,7 @@ function Library:MakeWindow(WindowConfig)
 
     local ResizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(1,-114,0,0),
+        Position = UDim2.new(0,0,0,0),    -- erster Slot
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://117273761878755"), {
@@ -610,6 +613,20 @@ function Library:MakeWindow(WindowConfig)
             Size = UDim2.new(0,16,0,16)
         }), "Text")
     })
+
+    -- Container für alle 3 Buttons – GANZ RECHTS mit AnchorPoint (1, 0.5)
+    local ButtonContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
+        Size = UDim2.new(0,108,0,26),
+        Position = UDim2.new(1,-8,0.5,0),   -- ganz rechts, 8px Abstand zum Rand
+        AnchorPoint = Vector2.new(1,0.5)
+    }), {
+        AddThemeObject(MakeElement("Stroke"), "Stroke"),
+        AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
+        AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
+        ResizeBtn,
+        MinimizeBtn,
+        CloseBtn
+    }), "Second")
 
     local DragPoint = SetProps(MakeElement("TFrame"), {
         Size = UDim2.new(1,0,0,46)
@@ -655,23 +672,11 @@ function Library:MakeWindow(WindowConfig)
 
     -- -------------------------------------------------------
     -- TopBar zusammenstellen
-    -- ÄNDERUNG: Button-Container ist jetzt zentriert (AnchorPoint 0.5/0.5, Position 0.5/0.5)
     -- -------------------------------------------------------
     local TopBarChildren = {
         WindowName,
         WindowTopBarLine,
-        AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
-            Size = UDim2.new(0,108,0,26),
-            Position = UDim2.new(0.5,0,0.5,0),   -- <-- GEÄNDERT: zentriert
-            AnchorPoint = Vector2.new(0.5,0.5)    -- <-- GEÄNDERT: Ankerpunkt mittig
-        }), {
-            AddThemeObject(MakeElement("Stroke"), "Stroke"),
-            AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
-            AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
-            ResizeBtn,
-            MinimizeBtn,
-            CloseBtn
-        }), "Second"),
+        ButtonContainer,
     }
 
     if BannerIconLabel then
@@ -1469,10 +1474,13 @@ Library:Init()
 
   ÄNDERUNGEN:
   ✓ Button-Container (Resize | Minimize | Close) ist jetzt
-    exakt zentriert in der TopBar:
-      Position  = UDim2.new(0.5, 0, 0.5, 0)
+    ganz RECHTS in der TopBar:
+      Position    = UDim2.new(1, -8, 0.5, 0)
+      AnchorPoint = Vector2.new(1, 0.5)
+  ✓ Icons sind perfekt zentriert in ihren Boxen:
       AnchorPoint = Vector2.new(0.5, 0.5)
-  ✓ WindowName-Label nutzt volle Breite für sauberes Zentrieren
+      Position    = UDim2.new(0.5, 0, 0.5, 0)
+  ✓ WindowName ist nun linksbündig (passt zur neuen TopBar)
   ✓ Alle anderen Features bleiben unverändert
 ==========================================================
 ]]
