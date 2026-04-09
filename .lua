@@ -264,7 +264,7 @@ CreateElement("Padding", function(Bottom, Left, Right, Top)
     })
 end)
 CreateElement("TFrame", function()
-    return Create("Frame", {BackgroundTransparency = 1})
+    return Create("Frame", {BackgroundTransparency = 0})
 end)
 CreateElement("Frame", function(Color)
     return Create("Frame", {BackgroundColor3 = Color or Color3.fromRGB(255,255,255), BorderSizePixel = 0})
@@ -275,11 +275,11 @@ CreateElement("RoundFrame", function(Color, Scale, Offset)
     })
 end)
 CreateElement("Button", function()
-    return Create("TextButton", {Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0})
+    return Create("TextButton", {Text = "", AutoButtonColor = false, BackgroundTransparency = 0, BorderSizePixel = 0})
 end)
 CreateElement("ScrollFrame", function(Color, Width)
     return Create("ScrollingFrame", {
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0,
         MidImage = "rbxassetid://7445543667",
         BottomImage = "rbxassetid://7445543667",
         TopImage = "rbxassetid://7445543667",
@@ -290,10 +290,10 @@ CreateElement("ScrollFrame", function(Color, Width)
     })
 end)
 CreateElement("Image", function(ImageID)
-    return Create("ImageLabel", {Image = ImageID, BackgroundTransparency = 1})
+    return Create("ImageLabel", {Image = ImageID, BackgroundTransparency = 0})
 end)
 CreateElement("ImageButton", function(ImageID)
-    return Create("ImageButton", {Image = ImageID, BackgroundTransparency = 1})
+    return Create("ImageButton", {Image = ImageID, BackgroundTransparency = 0})
 end)
 CreateElement("Label", function(Text, TextSize, Transparency)
     return Create("TextLabel", {
@@ -348,7 +348,7 @@ function Library:MakeNotification(NotificationConfig)
         })
         TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position=UDim2.new(0,0,0,0)}):Play()
         wait(NotificationConfig.Time - 0.88)
-        TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency=1}):Play()
+        TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency=0}):Play()
         TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency=0.6}):Play()
         wait(0.3)
         TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency=0.9}):Play()
@@ -380,7 +380,7 @@ local function ShowLoadingScreen(duration, callback)
         Parent = Container,
         Size = UDim2.new(1,0,1,0),
         BackgroundColor3 = Color3.fromRGB(0,0,0),
-        BackgroundTransparency = 0.45,
+        BackgroundTransparency = 0,
         ZIndex = 100,
         BorderSizePixel = 0
     })
@@ -393,7 +393,7 @@ local function ShowLoadingScreen(duration, callback)
         BackgroundColor3 = Color3.fromRGB(10, 10, 13),
         BorderSizePixel = 0,
         ZIndex = 101,
-        BackgroundTransparency = 1
+        BackgroundTransparency = ß
     }, {
         Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
         Create("UIStroke", {Color = Color3.fromRGB(35, 35, 42), Thickness = 1.2})
@@ -404,9 +404,9 @@ local function ShowLoadingScreen(duration, callback)
         AnchorPoint = Vector2.new(0.5, 0),
         Position = UDim2.new(0.5, 0, 0, 18),
         Size = UDim2.new(0, 24, 0, 24),
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0,
         Image = "rbxassetid://125829575723612",
-        ImageTransparency = 1,
+        ImageTransparency = 0,
         ZIndex = 102
     })
 
@@ -415,13 +415,13 @@ local function ShowLoadingScreen(duration, callback)
         AnchorPoint = Vector2.new(0.5, 0),
         Position = UDim2.new(0.5, 0, 0, 48),
         Size = UDim2.new(1, -20, 0, 18),
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0,
         Text = "Venty",
         TextColor3 = Color3.fromRGB(230, 230, 235),
         TextSize = 17,
         Font = Enum.Font.GothamBlack,
         TextXAlignment = Enum.TextXAlignment.Center,
-        TextTransparency = 1,
+        TextTransparency = 0,
         ZIndex = 102
     })
 
@@ -436,7 +436,7 @@ local function ShowLoadingScreen(duration, callback)
         TextSize = 12,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Center,
-        TextTransparency = 1,
+        TextTransparency = 0,
         ZIndex = 102
     })
 
