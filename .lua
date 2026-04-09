@@ -10,10 +10,8 @@ local Mouse = LocalPlayer:GetMouse()
 -- =========================================================
 local LOCK_KEY = "VentyLibrary_Active"
 
--- Altes Menu suchen und deaktivieren
 for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
     if gui:IsA("ScreenGui") and gui:FindFirstChild("__VentyLock") then
-        -- Gefunden: zerstören, damit Ladebalken danach startet
         gui:Destroy()
         task.wait(0.05)
     end
@@ -40,12 +38,8 @@ local Library = {
     Font = Enum.Font.Gotham
 }
 
-local TAB_HEIGHT = 36      -- Höhe der Tab-Leiste
-local TAB_PADDING = 14     -- Horizontaler Innen-Abstand Tab
-
-local function GetIcon(IconName)
-    return nil
-end
+local TAB_HEIGHT = 36
+local TAB_PADDING = 14
 
 -- =========================================================
 -- ScreenGui erstellen + Lock-Marker
@@ -56,7 +50,6 @@ Container.DisplayOrder = 2147483647
 Container.ResetOnSpawn = false
 Container.Parent = game:GetService("CoreGui")
 
--- Lock-Marker damit Multi-Execute erkannt wird
 local LockMarker = Instance.new("StringValue")
 LockMarker.Name = "__VentyLock"
 LockMarker.Value = "1"
@@ -380,102 +373,125 @@ function Library:Init()
 end
 
 -- =========================================================
--- LADEBALKEN-OVERLAY
+-- LADEBALKEN – KLEINES FENSTER (zentriert, kompakt)
 -- =========================================================
 local function ShowLoadingScreen(duration, callback)
+    -- Dunkler Overlay-Hintergrund (halbtransparent)
     local Overlay = Create("Frame", {
         Parent = Container,
         Size = UDim2.new(1,0,1,0),
-        BackgroundColor3 = Color3.fromRGB(6,6,8),
+        BackgroundColor3 = Color3.fromRGB(0,0,0),
+        BackgroundTransparency = 0.45,
         ZIndex = 100,
         BorderSizePixel = 0
     })
 
-    -- Logo / Text
+    -- Kleines Loading-Fenster
+    local LoadWindow = Create("Frame", {
+        Parent = Container,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, 300, 0, 130),
+        BackgroundColor3 = Color3.fromRGB(10, 10, 13),
+        BorderSizePixel = 0,
+        ZIndex = 101,
+        BackgroundTransparency = 1  -- startet unsichtbar
+    }, {
+        Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
+        Create("UIStroke", {Color = Color3.fromRGB(35, 35, 42), Thickness = 1.2})
+    })
+
+    -- Logo-Icon
     local LogoImg = Create("ImageLabel", {
-        Parent = Overlay,
-        AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.42,0),
-        Size = UDim2.new(0,32,0,32),
+        Parent = LoadWindow,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 18),
+        Size = UDim2.new(0, 24, 0, 24),
         BackgroundTransparency = 1,
         Image = "rbxassetid://125829575723612",
         ImageTransparency = 1,
-        ZIndex = 101
+        ZIndex = 102
     })
+
+    -- Titel
     local LoadTitle = Create("TextLabel", {
-        Parent = Overlay,
-        AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.5,0),
-        Size = UDim2.new(0,300,0,20),
+        Parent = LoadWindow,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 48),
+        Size = UDim2.new(1, -20, 0, 18),
         BackgroundTransparency = 1,
         Text = "Venty",
-        TextColor3 = Color3.fromRGB(230,230,235),
-        TextSize = 22,
+        TextColor3 = Color3.fromRGB(230, 230, 235),
+        TextSize = 17,
         Font = Enum.Font.GothamBlack,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextTransparency = 1,
-        ZIndex = 101
+        ZIndex = 102
     })
+
+    -- Sub-Text (Status)
     local LoadSub = Create("TextLabel", {
-        Parent = Overlay,
-        AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.555,0),
-        Size = UDim2.new(0,300,0,14),
+        Parent = LoadWindow,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 70),
+        Size = UDim2.new(1, -20, 0, 13),
         BackgroundTransparency = 1,
         Text = "Initializing...",
-        TextColor3 = Color3.fromRGB(120,120,130),
-        TextSize = 13,
+        TextColor3 = Color3.fromRGB(100, 100, 115),
+        TextSize = 12,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextTransparency = 1,
-        ZIndex = 101
+        ZIndex = 102
     })
 
     -- Balken-Hintergrund
     local BarBg = Create("Frame", {
-        Parent = Overlay,
-        AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.64,0),
-        Size = UDim2.new(0,220,0,3),
-        BackgroundColor3 = Color3.fromRGB(28,28,35),
+        Parent = LoadWindow,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 90),
+        Size = UDim2.new(1, -40, 0, 3),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 32),
         BorderSizePixel = 0,
-        ZIndex = 101
-    }, {Create("UICorner",{CornerRadius=UDim.new(1,0)})})
+        ZIndex = 102
+    }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
     -- Balken-Fill
     local BarFill = Create("Frame", {
         Parent = BarBg,
-        Size = UDim2.new(0,0,1,0),
-        BackgroundColor3 = Color3.fromRGB(60,120,255),
+        Size = UDim2.new(0, 0, 1, 0),
+        BackgroundColor3 = Color3.fromRGB(60, 120, 255),
         BorderSizePixel = 0,
-        ZIndex = 102
-    }, {Create("UICorner",{CornerRadius=UDim.new(1,0)})})
+        ZIndex = 103
+    }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
-    -- Prozent-Label
+    -- Prozent
     local PercLabel = Create("TextLabel", {
-        Parent = Overlay,
-        AnchorPoint = Vector2.new(0.5,0.5),
-        Position = UDim2.new(0.5,0,0.68,0),
-        Size = UDim2.new(0,220,0,14),
+        Parent = LoadWindow,
+        AnchorPoint = Vector2.new(0.5, 0),
+        Position = UDim2.new(0.5, 0, 0, 100),
+        Size = UDim2.new(1, -40, 0, 13),
         BackgroundTransparency = 1,
         Text = "0%",
-        TextColor3 = Color3.fromRGB(80,80,95),
-        TextSize = 11,
+        TextColor3 = Color3.fromRGB(70, 70, 88),
+        TextSize = 10,
         Font = Enum.Font.Gotham,
         TextXAlignment = Enum.TextXAlignment.Right,
         TextTransparency = 1,
-        ZIndex = 101
+        ZIndex = 102
     })
 
-    -- Einblenden
-    TweenService:Create(LogoImg,    TweenInfo.new(0.4,Enum.EasingStyle.Quint), {ImageTransparency=0, Position=UDim2.new(0.5,0,0.38,0)}):Play()
-    TweenService:Create(LoadTitle,  TweenInfo.new(0.4,Enum.EasingStyle.Quint), {TextTransparency=0}):Play()
-    task.wait(0.25)
-    TweenService:Create(LoadSub,    TweenInfo.new(0.3,Enum.EasingStyle.Quint), {TextTransparency=0}):Play()
-    TweenService:Create(PercLabel,  TweenInfo.new(0.3,Enum.EasingStyle.Quint), {TextTransparency=0}):Play()
+    -- Einblenden: Fenster + Elemente
+    TweenService:Create(LoadWindow, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
+    task.wait(0.1)
+    TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
+    TweenService:Create(LoadTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
     task.wait(0.15)
+    TweenService:Create(LoadSub,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
+    TweenService:Create(PercLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
+    task.wait(0.1)
 
-    -- Balken animieren
+    -- Fortschritt animieren
     local steps = {"Checking environment...", "Loading modules...", "Applying settings...", "Ready!"}
     local stepDur = duration / #steps
 
@@ -485,29 +501,29 @@ local function ShowLoadingScreen(duration, callback)
         TweenService:Create(BarFill, TweenInfo.new(stepDur * 0.9, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             Size = UDim2.new(targetScale, 0, 1, 0)
         }):Play()
-        -- Prozent hochzählen
         local startPct = math.floor((i-1)/#steps * 100)
         local endPct   = math.floor(i/#steps * 100)
         local t0 = tick()
         while tick() - t0 < stepDur do
             local progress = math.clamp((tick()-t0)/stepDur, 0, 1)
-            local pct = math.floor(startPct + (endPct-startPct)*progress)
-            PercLabel.Text = pct.."%"
+            PercLabel.Text = math.floor(startPct + (endPct-startPct)*progress).."%"
             task.wait()
         end
         PercLabel.Text = endPct.."%"
     end
 
     -- Ausblenden
-    task.wait(0.15)
-    TweenService:Create(Overlay, TweenInfo.new(0.5,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
-    TweenService:Create(LogoImg,   TweenInfo.new(0.4,Enum.EasingStyle.Quint), {ImageTransparency=1, Position=UDim2.new(0.5,0,0.34,0)}):Play()
-    TweenService:Create(LoadTitle, TweenInfo.new(0.4,Enum.EasingStyle.Quint), {TextTransparency=1}):Play()
-    TweenService:Create(LoadSub,   TweenInfo.new(0.3,Enum.EasingStyle.Quint), {TextTransparency=1}):Play()
-    TweenService:Create(PercLabel, TweenInfo.new(0.3,Enum.EasingStyle.Quint), {TextTransparency=1}):Play()
-    TweenService:Create(BarBg,     TweenInfo.new(0.3,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
-    TweenService:Create(BarFill,   TweenInfo.new(0.3,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
+    task.wait(0.12)
+    TweenService:Create(LoadWindow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+    TweenService:Create(LoadTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
+    TweenService:Create(LoadSub,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
+    TweenService:Create(PercLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
+    TweenService:Create(BarBg,     TweenInfo.new(0.25, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(BarFill,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Overlay,   TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
     task.wait(0.5)
+    LoadWindow:Destroy()
     Overlay:Destroy()
     if callback then callback() end
 end
@@ -529,10 +545,12 @@ function Library:MakeWindow(WindowConfig)
     WindowConfig.IntroToggleIcon= WindowConfig.IntroToggleIcon or "rbxassetid://125829575723612"
     WindowConfig.IntroText      = WindowConfig.IntroText      or "Launching Venty"
     WindowConfig.CloseCallback  = WindowConfig.CloseCallback  or function() end
-    WindowConfig.ShowIcon       = WindowConfig.ShowIcon       or false
-    WindowConfig.Icon           = WindowConfig.Icon           or "rbxassetid://125829575723612"
-    WindowConfig.IntroIcon      = WindowConfig.IntroIcon      or "rbxassetid://125829575723612"
-    WindowConfig.LoadDuration   = WindowConfig.LoadDuration   or 2.5   -- Ladedauer in Sekunden
+    WindowConfig.LoadDuration   = WindowConfig.LoadDuration   or 2.5
+
+    -- NEU: Banner-Icon oben links (optional)
+    -- Setze local bannericon = "rbxassetid://deine_id" vor MakeWindow-Aufruf
+    -- oder übergib BannerIcon = "rbxassetid://..." im Config
+    WindowConfig.BannerIcon = WindowConfig.BannerIcon or nil
 
     Library.Folder  = WindowConfig.ConfigFolder
     Library.SaveCfg = WindowConfig.SaveConfig
@@ -544,21 +562,32 @@ function Library:MakeWindow(WindowConfig)
     end
 
     -- -------------------------------------------------------
-    -- Haupt-Fenster (erstmal unsichtbar, wird nach Ladebalken gezeigt)
+    -- TopBar: Icon links | Name zentriert | Controls rechts
     -- -------------------------------------------------------
-
-    -- Top-Bar mit Titel + Window-Controls
     local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(1,0,0,1),
         Position = UDim2.new(0,0,1,-1)
     }), "Stroke")
 
-    local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 14), {
-        Size = UDim2.new(1,-155,1,0),
-        Position = UDim2.new(0, WindowConfig.ShowIcon and 55 or 18, 0, 0),
+    -- Fenster-Name ZENTRIERT
+    local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
+        Size = UDim2.new(1,-220,1,0),
+        Position = UDim2.new(0,110,0,0),
         Font = Enum.Font.GothamBlack,
-        TextSize = 16
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Center
     }), "Text")
+
+    -- Banner-Icon OBEN LINKS (nur wenn gesetzt)
+    local BannerIconLabel = nil
+    if WindowConfig.BannerIcon then
+        BannerIconLabel = SetProps(MakeElement("Image", WindowConfig.BannerIcon), {
+            AnchorPoint = Vector2.new(0, 0.5),
+            Position = UDim2.new(0, 12, 0.5, 0),
+            Size = UDim2.new(0, 26, 0, 26),
+            Name = "BannerIcon"
+        })
+    end
 
     local CloseBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
@@ -602,14 +631,17 @@ function Library:MakeWindow(WindowConfig)
     })
 
     -- -------------------------------------------------------
-    -- TAB-LEISTE (horizontal, oben unter der Topbar)
+    -- TAB-LEISTE: scrollbar (ScrollingDirection = X)
     -- -------------------------------------------------------
     local TabBar = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 0), {
         Size = UDim2.new(1,0,0,TAB_HEIGHT),
         Position = UDim2.new(0,0,0,46),
+        -- Scrollen mit Mausrad oder Touch horizontal
         ScrollBarThickness = 0,
         ScrollingDirection = Enum.ScrollingDirection.X,
-        CanvasSize = UDim2.new(0,0,0,0)
+        CanvasSize = UDim2.new(0,0,0,0),
+        -- Mausrad → horizontales Scrollen
+        ElasticBehavior = Enum.ElasticBehavior.Never
     }), {
         SetProps(Create("UIListLayout", {
             FillDirection = Enum.FillDirection.Horizontal,
@@ -620,6 +652,14 @@ function Library:MakeWindow(WindowConfig)
         }), {}),
         MakeElement("Padding", 0, 8, 8, 0)
     }), "Second")
+
+    -- Mausrad → horizontales Scrollen in der Tab-Leiste
+    TabBar.InputChanged:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseWheel then
+            local newPos = TabBar.CanvasPosition.X - (Input.Position.Z * 40)
+            TabBar.CanvasPosition = Vector2.new(math.max(0, newPos), 0)
+        end
+    end)
 
     -- Trennlinie unter Tab-Leiste
     local TabBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
@@ -633,49 +673,47 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0,0,0,46+TAB_HEIGHT+1)
     }), "Main")
 
+    -- TopBar-Children zusammenstellen
+    local TopBarChildren = {
+        WindowName,
+        WindowTopBarLine,
+        AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
+            Size = UDim2.new(0,108,0,26),
+            Position = UDim2.new(1,-116,0.5,0),
+            AnchorPoint = Vector2.new(0,0.5)
+        }), {
+            AddThemeObject(MakeElement("Stroke"), "Stroke"),
+            AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
+            AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
+            ResizeBtn,
+            MinimizeBtn,
+            CloseBtn
+        }), "Second"),
+    }
+
+    if BannerIconLabel then
+        table.insert(TopBarChildren, BannerIconLabel)
+    end
+
     local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,10), {
         Parent = Container,
         Position = UDim2.new(0.5,-307,0.5,-172),
         Size = UDim2.new(0,615,0,344),
         ClipsDescendants = true,
-        BackgroundTransparency = 0.01,
-        Visible = false   -- erst nach Ladebalken sichtbar
+        -- TRANSPARENT: 0.18 = leicht durchsichtig
+        BackgroundTransparency = 0.18,
+        Visible = false
     }), {
-        -- TopBar
         SetChildren(SetProps(MakeElement("TFrame"), {
             Size = UDim2.new(1,0,0,46),
             Name = "TopBar",
             ClipsDescendants = false
-        }), {
-            WindowName,
-            WindowTopBarLine,
-            AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
-                Size = UDim2.new(0,108,0,26),
-                Position = UDim2.new(1,-116,0.5,0),
-                AnchorPoint = Vector2.new(0,0.5)
-            }), {
-                AddThemeObject(MakeElement("Stroke"), "Stroke"),
-                AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
-                AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
-                ResizeBtn,
-                MinimizeBtn,
-                CloseBtn
-            }), "Second"),
-        }),
+        }), TopBarChildren),
         DragPoint,
         TabBar,
         TabBarLine,
         ContentArea
     }), "Main")
-
-    if WindowConfig.ShowIcon then
-        local WindowIcon = SetProps(MakeElement("Image", WindowConfig.Icon), {
-            Size = UDim2.new(0,22,0,22),
-            Position = UDim2.new(0,18,0.5,0),
-            AnchorPoint = Vector2.new(0,0.5)
-        })
-        WindowIcon.Parent = MainWindow.TopBar
-    end
 
     local SetResizingCallback = MakeDraggable(DragPoint, MainWindow)
     MakeResizable(ResizeBtn, MainWindow, Vector2.new(400,260), Vector2.new(1200,800), SetResizingCallback)
@@ -734,14 +772,10 @@ function Library:MakeWindow(WindowConfig)
         Minimized = not Minimized
     end)
 
-    -- -------------------------------------------------------
-    -- Ladebalken anzeigen → dann Fenster öffnen
-    -- -------------------------------------------------------
-    local function OpenAfterLoad()
+    -- Ladebalken → dann Fenster öffnen
+    ShowLoadingScreen(WindowConfig.LoadDuration, function()
         MainWindow.Visible = true
-    end
-
-    ShowLoadingScreen(WindowConfig.LoadDuration, OpenAfterLoad)
+    end)
 
     -- =========================================================
     -- TabFunction
@@ -754,15 +788,13 @@ function Library:MakeWindow(WindowConfig)
         TabConfig.Icon        = TabConfig.Icon        or ""
         TabConfig.PremiumOnly = TabConfig.PremiumOnly or false
 
-        -- TAB-BUTTON: Icon links + Name rechts, horizontal in der Tab-Leiste
         local TabBtn = AddThemeObject(SetChildren(SetProps(MakeElement("Button"), {
-            Size = UDim2.new(0,100,1,0),   -- wird unten dynamisch angepasst
+            Size = UDim2.new(0,100,1,0),
             AutomaticSize = Enum.AutomaticSize.X,
             Parent = TabBar,
             BackgroundTransparency = 1,
             ClipsDescendants = false
         }), {
-            -- Aktiv-Unterstrich
             Create("Frame", {
                 Name = "ActiveBar",
                 Size = UDim2.new(1,-16,0,2),
@@ -772,7 +804,6 @@ function Library:MakeWindow(WindowConfig)
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1
             }, {Create("UICorner",{CornerRadius=UDim.new(1,0)})}),
-            -- Icon
             AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), {
                 AnchorPoint = Vector2.new(0,0.5),
                 Size = UDim2.new(0,15,0,15),
@@ -780,7 +811,6 @@ function Library:MakeWindow(WindowConfig)
                 ImageTransparency = 0.55,
                 Name = "Ico"
             }), "Text"),
-            -- Name
             AddThemeObject(SetProps(MakeElement("Label", TabConfig.Name, 13), {
                 AnchorPoint = Vector2.new(0,0.5),
                 Size = UDim2.new(0,0,0,14),
@@ -790,19 +820,27 @@ function Library:MakeWindow(WindowConfig)
                 Name = "TabName",
                 TextTransparency = 0.5
             }), "Text"),
-            -- Rechts-Padding (damit Label nicht am Rand klebt)
             Create("UIPadding", {
                 PaddingRight = UDim.new(0, TAB_PADDING)
             })
         }), "Second")
 
-        -- Wenn kein Icon: Icon-Größe auf 0
+        -- Tab-Canvas-Größe aktualisieren wenn neue Tabs hinzukommen
+        task.defer(function()
+            local layout = TabBar:FindFirstChildOfClass("UIListLayout")
+            if layout then
+                TabBar.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X + 16, 0, 0)
+                layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    TabBar.CanvasSize = UDim2.new(0, layout.AbsoluteContentSize.X + 16, 0, 0)
+                end)
+            end
+        end)
+
         if TabConfig.Icon == "" then
             TabBtn.Ico.Size = UDim2.new(0,0,0,0)
             TabBtn.Ico.Visible = false
         end
 
-        -- Content-Container
         local ItemContainer = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 5), {
             Size = UDim2.new(1,0,1,0),
             Parent = ContentArea,
@@ -822,9 +860,7 @@ function Library:MakeWindow(WindowConfig)
         ClickSound.Volume = 0.8
         ClickSound.Parent = TabBtn
 
-        -- Erster Tab aktiv
         local function ActivateTab()
-            -- Alle deaktivieren
             for _, tb in next, TabBar:GetChildren() do
                 if tb:IsA("TextButton") then
                     pcall(function()
@@ -838,12 +874,24 @@ function Library:MakeWindow(WindowConfig)
             for _, Cont in next, ContentArea:GetChildren() do
                 if Cont.Name == "ItemContainer" then Cont.Visible = false end
             end
-            -- Diesen aktivieren
             TweenService:Create(TabBtn.Ico,     TweenInfo.new(0.22,Enum.EasingStyle.Quint), {ImageTransparency=0.05, ImageColor3=Color3.fromRGB(255,255,255)}):Play()
             TweenService:Create(TabBtn.TabName, TweenInfo.new(0.22,Enum.EasingStyle.Quint), {TextTransparency=0}):Play()
             TweenService:Create(TabBtn.ActiveBar, TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=0}):Play()
             TweenService:Create(TabBtn, TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=0.88}):Play()
             ItemContainer.Visible = true
+
+            -- Aktiven Tab in Sicht scrollen
+            task.defer(function()
+                local tabPos = TabBtn.AbsolutePosition.X - TabBar.AbsolutePosition.X
+                local tabEnd = tabPos + TabBtn.AbsoluteSize.X
+                local barWidth = TabBar.AbsoluteSize.X
+                local canvas = TabBar.CanvasPosition.X
+                if tabPos < canvas then
+                    TabBar.CanvasPosition = Vector2.new(math.max(0, tabPos - 8), 0)
+                elseif tabEnd > canvas + barWidth then
+                    TabBar.CanvasPosition = Vector2.new(tabEnd - barWidth + 8, 0)
+                end
+            end)
         end
 
         if FirstTab then
@@ -856,7 +904,6 @@ function Library:MakeWindow(WindowConfig)
             ActivateTab()
         end)
 
-        -- Hover
         AddConnection(TabBtn.MouseEnter, function()
             if ItemContainer.Visible then return end
             TweenService:Create(TabBtn, TweenInfo.new(0.18,Enum.EasingStyle.Quint), {BackgroundTransparency=0.94}):Play()
@@ -1303,12 +1350,10 @@ function Library:MakeWindow(WindowConfig)
             return ElementFunction
         end
 
-        -- Section
         local ElementFunction = {}
         function ElementFunction:AddSection(SectionConfig)
             SectionConfig.Name = SectionConfig.Name or "Section"
             local SectionLabelRow = SetProps(MakeElement("TFrame"),{Size=UDim2.new(1,0,0,16),ClipsDescendants=false})
-            local SectionAccent = Create("Frame",{Size=UDim2.new(0,2,0,14),Position=UDim2.new(0,0,0.5,0),AnchorPoint=Vector2.new(0,0.5),BackgroundColor3=Color3.fromRGB(120,125,130),BorderSizePixel=0,Parent=SectionLabelRow},{Create("UICorner",{CornerRadius=UDim.new(0,2)})})
             AddThemeObject(SetProps(MakeElement("Label",SectionConfig.Name,14),{Size=UDim2.new(1,-10,1,0),Position=UDim2.new(0,8,0,0),Font=Enum.Font.FredokaOne,Parent=SectionLabelRow}),"TextDark")
             local SectionFrame = SetChildren(SetProps(MakeElement("TFrame"),{Size=UDim2.new(1,0,0,26),Parent=ItemContainer}),{
                 SectionLabelRow,
@@ -1343,7 +1388,7 @@ function Library:MakeWindow(WindowConfig)
 end
 
 -- =========================================================
--- Zweites Notification-System (unverändert)
+-- Zweites Notification-System
 -- =========================================================
 local Configs_HUB = {
     Cor_Hub=Color3.fromRGB(15,15,15), Cor_Options=Color3.fromRGB(15,15,15),
@@ -1412,14 +1457,17 @@ return Library
 
 local Library = loadstring(game:HttpGet("..."))()
 
+-- Banner-Icon oben links setzen:
+local bannericon = "rbxassetid://DEINE_ICON_ID"
+
 local Window = Library:MakeWindow({
-    Name           = "Mein Script",
-    LoadDuration   = 3,          -- Sekunden Ladezeit (Standard: 2.5)
-    IntroEnabled   = false,      -- kein separates Intro mehr nötig
-    SaveConfig     = false,
+    Name         = "Mein Script",      -- wird ZENTRIERT oben angezeigt
+    BannerIcon   = bannericon,         -- Icon oben links (optional)
+    LoadDuration = 3,                  -- Ladedauer in Sekunden
+    SaveConfig   = false,
 })
 
--- TABS werden jetzt horizontal oben angezeigt (Icon + Name)
+-- TABS (scrollbar mit Mausrad)
 local CombatTab = Window:MakeTab({
     Name = "Combat",
     Icon = "rbxassetid://XXXXXXX",
@@ -1442,17 +1490,17 @@ VisualsTab:AddToggle({
     Callback = function(v) print(v) end,
 })
 
-local SettingsTab = Window:MakeTab({
-    Name = "Settings",
-    Icon = "rbxassetid://XXXXXXX",
-})
-
 Library:Init()
 ==========================================================
---
-  MULTI-EXECUTE SCHUTZ:
-  Wenn das Script erneut ausgeführt wird, erkennt es das
-  vorherige Menu (via __VentyLock-Marker) und zerstört es
-  automatisch, bevor der neue Ladebalken startet.
+
+  ÄNDERUNGEN:
+  ✓ Tab-Leiste scrollbar (Mausrad oder Touch)
+  ✓ Window-Name zentriert in der TopBar
+  ✓ Banner-Icon oben links via BannerIcon = "rbxassetid://..."
+    oder alternativ: local bannericon = "rbxassetid://..."
+    dann Window = Library:MakeWindow({ BannerIcon = bannericon, ... })
+  ✓ Hintergrund leicht transparent (BackgroundTransparency = 0.18)
+  ✓ Loading Screen als kleines Fenster (300x130px, zentriert)
+  ✓ Multi-Execute-Schutz bleibt erhalten
 ==========================================================
 ]]
