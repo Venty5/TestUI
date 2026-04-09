@@ -376,7 +376,6 @@ end
 -- LADEBALKEN – KLEINES FENSTER (zentriert, kompakt)
 -- =========================================================
 local function ShowLoadingScreen(duration, callback)
-    -- Dunkler Overlay-Hintergrund (halbtransparent)
     local Overlay = Create("Frame", {
         Parent = Container,
         Size = UDim2.new(1,0,1,0),
@@ -386,7 +385,6 @@ local function ShowLoadingScreen(duration, callback)
         BorderSizePixel = 0
     })
 
-    -- Kleines Loading-Fenster
     local LoadWindow = Create("Frame", {
         Parent = Container,
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -395,13 +393,12 @@ local function ShowLoadingScreen(duration, callback)
         BackgroundColor3 = Color3.fromRGB(10, 10, 13),
         BorderSizePixel = 0,
         ZIndex = 101,
-        BackgroundTransparency = 1  -- startet unsichtbar
+        BackgroundTransparency = 1
     }, {
         Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
         Create("UIStroke", {Color = Color3.fromRGB(35, 35, 42), Thickness = 1.2})
     })
 
-    -- Logo-Icon
     local LogoImg = Create("ImageLabel", {
         Parent = LoadWindow,
         AnchorPoint = Vector2.new(0.5, 0),
@@ -413,7 +410,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 102
     })
 
-    -- Titel
     local LoadTitle = Create("TextLabel", {
         Parent = LoadWindow,
         AnchorPoint = Vector2.new(0.5, 0),
@@ -429,7 +425,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 102
     })
 
-    -- Sub-Text (Status)
     local LoadSub = Create("TextLabel", {
         Parent = LoadWindow,
         AnchorPoint = Vector2.new(0.5, 0),
@@ -445,7 +440,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 102
     })
 
-    -- Balken-Hintergrund
     local BarBg = Create("Frame", {
         Parent = LoadWindow,
         AnchorPoint = Vector2.new(0.5, 0),
@@ -456,7 +450,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 102
     }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
-    -- Balken-Fill
     local BarFill = Create("Frame", {
         Parent = BarBg,
         Size = UDim2.new(0, 0, 1, 0),
@@ -465,7 +458,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 103
     }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
-    -- Prozent
     local PercLabel = Create("TextLabel", {
         Parent = LoadWindow,
         AnchorPoint = Vector2.new(0.5, 0),
@@ -481,7 +473,6 @@ local function ShowLoadingScreen(duration, callback)
         ZIndex = 102
     })
 
-    -- Einblenden: Fenster + Elemente
     TweenService:Create(LoadWindow, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
     task.wait(0.1)
     TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
@@ -491,7 +482,6 @@ local function ShowLoadingScreen(duration, callback)
     TweenService:Create(PercLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
     task.wait(0.1)
 
-    -- Fortschritt animieren
     local steps = {"Checking environment...", "Loading modules...", "Applying settings...", "Ready!"}
     local stepDur = duration / #steps
 
@@ -512,7 +502,6 @@ local function ShowLoadingScreen(duration, callback)
         PercLabel.Text = endPct.."%"
     end
 
-    -- Ausblenden
     task.wait(0.12)
     TweenService:Create(LoadWindow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
     TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
@@ -546,11 +535,7 @@ function Library:MakeWindow(WindowConfig)
     WindowConfig.IntroText      = WindowConfig.IntroText      or "Launching Venty"
     WindowConfig.CloseCallback  = WindowConfig.CloseCallback  or function() end
     WindowConfig.LoadDuration   = WindowConfig.LoadDuration   or 2.5
-
-    -- NEU: Banner-Icon oben links (optional)
-    -- Setze local bannericon = "rbxassetid://deine_id" vor MakeWindow-Aufruf
-    -- oder übergib BannerIcon = "rbxassetid://..." im Config
-    WindowConfig.BannerIcon = WindowConfig.BannerIcon or nil
+    WindowConfig.BannerIcon     = WindowConfig.BannerIcon     or nil
 
     Library.Folder  = WindowConfig.ConfigFolder
     Library.SaveCfg = WindowConfig.SaveConfig
@@ -562,7 +547,7 @@ function Library:MakeWindow(WindowConfig)
     end
 
     -- -------------------------------------------------------
-    -- TopBar: Icon links | Name zentriert | Controls rechts
+    -- TopBar-Elemente
     -- -------------------------------------------------------
     local WindowTopBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(1,0,0,1),
@@ -571,8 +556,8 @@ function Library:MakeWindow(WindowConfig)
 
     -- Fenster-Name ZENTRIERT
     local WindowName = AddThemeObject(SetProps(MakeElement("Label", WindowConfig.Name, 16), {
-        Size = UDim2.new(1,-220,1,0),
-        Position = UDim2.new(0,110,0,0),
+        Size = UDim2.new(1,0,1,0),
+        Position = UDim2.new(0,0,0,0),
         Font = Enum.Font.GothamBlack,
         TextSize = 16,
         TextXAlignment = Enum.TextXAlignment.Center
@@ -631,16 +616,14 @@ function Library:MakeWindow(WindowConfig)
     })
 
     -- -------------------------------------------------------
-    -- TAB-LEISTE: scrollbar (ScrollingDirection = X)
+    -- TAB-LEISTE
     -- -------------------------------------------------------
     local TabBar = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 0), {
         Size = UDim2.new(1,0,0,TAB_HEIGHT),
         Position = UDim2.new(0,0,0,46),
-        -- Scrollen mit Mausrad oder Touch horizontal
         ScrollBarThickness = 0,
         ScrollingDirection = Enum.ScrollingDirection.X,
         CanvasSize = UDim2.new(0,0,0,0),
-        -- Mausrad → horizontales Scrollen
         ElasticBehavior = Enum.ElasticBehavior.Never
     }), {
         SetProps(Create("UIListLayout", {
@@ -653,7 +636,6 @@ function Library:MakeWindow(WindowConfig)
         MakeElement("Padding", 0, 8, 8, 0)
     }), "Second")
 
-    -- Mausrad → horizontales Scrollen in der Tab-Leiste
     TabBar.InputChanged:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseWheel then
             local newPos = TabBar.CanvasPosition.X - (Input.Position.Z * 40)
@@ -661,26 +643,27 @@ function Library:MakeWindow(WindowConfig)
         end
     end)
 
-    -- Trennlinie unter Tab-Leiste
     local TabBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(1,0,0,1),
         Position = UDim2.new(0,0,0,46+TAB_HEIGHT)
     }), "Stroke")
 
-    -- Content-Bereich
     local ContentArea = AddThemeObject(SetProps(MakeElement("TFrame"), {
         Size = UDim2.new(1,0,1,-(46+TAB_HEIGHT+1)),
         Position = UDim2.new(0,0,0,46+TAB_HEIGHT+1)
     }), "Main")
 
-    -- TopBar-Children zusammenstellen
+    -- -------------------------------------------------------
+    -- TopBar zusammenstellen
+    -- ÄNDERUNG: Button-Container ist jetzt zentriert (AnchorPoint 0.5/0.5, Position 0.5/0.5)
+    -- -------------------------------------------------------
     local TopBarChildren = {
         WindowName,
         WindowTopBarLine,
         AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
             Size = UDim2.new(0,108,0,26),
-            Position = UDim2.new(1,-116,0.5,0),
-            AnchorPoint = Vector2.new(0,0.5)
+            Position = UDim2.new(0.5,0,0.5,0),   -- <-- GEÄNDERT: zentriert
+            AnchorPoint = Vector2.new(0.5,0.5)    -- <-- GEÄNDERT: Ankerpunkt mittig
         }), {
             AddThemeObject(MakeElement("Stroke"), "Stroke"),
             AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
@@ -700,7 +683,6 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0.5,-307,0.5,-172),
         Size = UDim2.new(0,615,0,344),
         ClipsDescendants = true,
-        -- TRANSPARENT: 0.18 = leicht durchsichtig
         BackgroundTransparency = 0.18,
         Visible = false
     }), {
@@ -718,7 +700,6 @@ function Library:MakeWindow(WindowConfig)
     local SetResizingCallback = MakeDraggable(DragPoint, MainWindow)
     MakeResizable(ResizeBtn, MainWindow, Vector2.new(400,260), Vector2.new(1200,800), SetResizingCallback)
 
-    -- Mobile-Reopen-Button
     local MobileReopenButton = SetChildren(SetProps(MakeElement("Button"), {
         Parent = Container, Size = UDim2.new(0,40,0,40),
         Position = UDim2.new(0.5,-20,0,20),
@@ -772,7 +753,6 @@ function Library:MakeWindow(WindowConfig)
         Minimized = not Minimized
     end)
 
-    -- Ladebalken → dann Fenster öffnen
     ShowLoadingScreen(WindowConfig.LoadDuration, function()
         MainWindow.Visible = true
     end)
@@ -825,7 +805,6 @@ function Library:MakeWindow(WindowConfig)
             })
         }), "Second")
 
-        -- Tab-Canvas-Größe aktualisieren wenn neue Tabs hinzukommen
         task.defer(function()
             local layout = TabBar:FindFirstChildOfClass("UIListLayout")
             if layout then
@@ -880,7 +859,6 @@ function Library:MakeWindow(WindowConfig)
             TweenService:Create(TabBtn, TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=0.88}):Play()
             ItemContainer.Visible = true
 
-            -- Aktiven Tab in Sicht scrollen
             task.defer(function()
                 local tabPos = TabBtn.AbsolutePosition.X - TabBar.AbsolutePosition.X
                 local tabEnd = tabPos + TabBtn.AbsoluteSize.X
@@ -1457,17 +1435,13 @@ return Library
 
 local Library = loadstring(game:HttpGet("..."))()
 
--- Banner-Icon oben links setzen:
-local bannericon = "rbxassetid://DEINE_ICON_ID"
-
 local Window = Library:MakeWindow({
-    Name         = "Mein Script",      -- wird ZENTRIERT oben angezeigt
-    BannerIcon   = bannericon,         -- Icon oben links (optional)
-    LoadDuration = 3,                  -- Ladedauer in Sekunden
+    Name         = "Mein Script",
+    BannerIcon   = "rbxassetid://DEINE_ICON_ID",  -- optional
+    LoadDuration = 3,
     SaveConfig   = false,
 })
 
--- TABS (scrollbar mit Mausrad)
 local CombatTab = Window:MakeTab({
     Name = "Combat",
     Icon = "rbxassetid://XXXXXXX",
@@ -1494,13 +1468,11 @@ Library:Init()
 ==========================================================
 
   ÄNDERUNGEN:
-  ✓ Tab-Leiste scrollbar (Mausrad oder Touch)
-  ✓ Window-Name zentriert in der TopBar
-  ✓ Banner-Icon oben links via BannerIcon = "rbxassetid://..."
-    oder alternativ: local bannericon = "rbxassetid://..."
-    dann Window = Library:MakeWindow({ BannerIcon = bannericon, ... })
-  ✓ Hintergrund leicht transparent (BackgroundTransparency = 0.18)
-  ✓ Loading Screen als kleines Fenster (300x130px, zentriert)
-  ✓ Multi-Execute-Schutz bleibt erhalten
+  ✓ Button-Container (Resize | Minimize | Close) ist jetzt
+    exakt zentriert in der TopBar:
+      Position  = UDim2.new(0.5, 0, 0.5, 0)
+      AnchorPoint = Vector2.new(0.5, 0.5)
+  ✓ WindowName-Label nutzt volle Breite für sauberes Zentrieren
+  ✓ Alle anderen Features bleiben unverändert
 ==========================================================
 ]]
