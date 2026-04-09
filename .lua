@@ -688,7 +688,7 @@ function Library:MakeWindow(WindowConfig)
         Position = UDim2.new(0.5,-307,0.5,-172),
         Size = UDim2.new(0,615,0,344),
         ClipsDescendants = true,
-        BackgroundTransparency = 0.18,
+        BackgroundTransparency = 0,
         Visible = false
     }), {
         SetChildren(SetProps(MakeElement("TFrame"), {
