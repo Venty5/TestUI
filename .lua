@@ -1,4 +1,4 @@
---V2 - Vertikale Sidebar Tabs (Orion Style)
+--V2 - Vertikale Sidebar Tabs (Orion Style) + Suche + Kategorien
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -495,10 +495,26 @@ local function ShowLoadingScreen(duration, callback)
     if callback then callback() end
 end
 
+-- =============================================
+-- Globale Suche: alle registrierten Elemente
+-- =============================================
+local AllSearchItems = {}  -- { Name, ItemContainer, FrameRef }
+
+local function RegisterSearchItem(Name, ItemContainer, FrameRef)
+    table.insert(AllSearchItems, {
+        Name = string.lower(Name),
+        DisplayName = Name,
+        Container = ItemContainer,
+        Frame = FrameRef
+    })
+end
+
 function Library:MakeWindow(WindowConfig)
     local FirstTab = true
     local Minimized = false
     local UIHidden = false
+    local SearchOpen = false
+    local ActiveTab = nil  -- aktuell aktiver ItemContainer
 
     WindowConfig = WindowConfig or {}
     WindowConfig.Name           = WindowConfig.Name           or "Venty"
@@ -544,9 +560,13 @@ function Library:MakeWindow(WindowConfig)
         })
     end
 
+    -- =============================================
+    -- BUTTONS: Resize, Search, Minimize, Close
+    -- 4 Buttons à 32px + 3 Trennlinien = 144px
+    -- =============================================
     local CloseBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(0,76,0,0),
+        Position = UDim2.new(0,112,0,0),
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072725342"), {
@@ -558,13 +578,28 @@ function Library:MakeWindow(WindowConfig)
 
     local MinimizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
-        Position = UDim2.new(0,38,0,0),
+        Position = UDim2.new(0,74,0,0),
         BackgroundTransparency = 1
     }), {
         AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://7072719338"), {
             AnchorPoint = Vector2.new(0.5,0.5),
             Position = UDim2.new(0.5,0,0.5,0),
             Size = UDim2.new(0,16,0,16),
+            Name = "Ico"
+        }), "Text")
+    })
+
+    -- Such-Button (Lupe)
+    local SearchBtn = SetChildren(SetProps(MakeElement("Button"), {
+        Size = UDim2.new(0,32,1,0),
+        Position = UDim2.new(0,36,0,0),
+        BackgroundTransparency = 1,
+        Name = "SearchBtn"
+    }), {
+        AddThemeObject(SetProps(MakeElement("Image", "rbxassetid://6031094678"), {
+            AnchorPoint = Vector2.new(0.5,0.5),
+            Position = UDim2.new(0.5,0,0.5,0),
+            Size = UDim2.new(0,15,0,15),
             Name = "Ico"
         }), "Text")
     })
@@ -582,14 +617,17 @@ function Library:MakeWindow(WindowConfig)
     })
 
     local ButtonContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
-        Size = UDim2.new(0,108,0,26),
+        Size = UDim2.new(0,144,0,26),
         Position = UDim2.new(1,-8,0.5,0),
         AnchorPoint = Vector2.new(1,0.5)
     }), {
         AddThemeObject(MakeElement("Stroke"), "Stroke"),
+        -- Trennlinien
         AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
         AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
+        AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,108,0,0)}), "Stroke"),
         ResizeBtn,
+        SearchBtn,
         MinimizeBtn,
         CloseBtn
     }), "Second")
@@ -599,7 +637,7 @@ function Library:MakeWindow(WindowConfig)
     })
 
     -- =============================================
-    -- SIDEBAR (vertikale Tab-Leiste, Orion Style)
+    -- SIDEBAR (vertikale Tab-Leiste)
     -- =============================================
     local TabBar = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 0), {
         Size = UDim2.new(0, SIDEBAR_WIDTH, 1, -47),
@@ -620,17 +658,71 @@ function Library:MakeWindow(WindowConfig)
         MakeElement("Padding", 8, 6, 6, 8)
     }), "Second")
 
-    -- Vertikale Trennlinie zwischen Sidebar und Content
     local TabBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(0, 1, 1, -47),
         Position = UDim2.new(0, SIDEBAR_WIDTH, 0, 47)
     }), "Stroke")
 
-    -- Content-Bereich rechts von der Sidebar
     local ContentArea = AddThemeObject(SetProps(MakeElement("TFrame"), {
         Size = UDim2.new(1, -(SIDEBAR_WIDTH + 1), 1, -47),
         Position = UDim2.new(0, SIDEBAR_WIDTH + 1, 0, 47)
     }), "Main")
+
+    -- =============================================
+    -- SUCHFELD (slide-in unter der TopBar)
+    -- =============================================
+    local SearchOverlay = SetProps(MakeElement("TFrame"), {
+        Size = UDim2.new(1, -(SIDEBAR_WIDTH+1), 1, -47),
+        Position = UDim2.new(0, SIDEBAR_WIDTH+1, 0, 47),
+        ZIndex = 20,
+        Visible = false,
+        ClipsDescendants = true
+    })
+
+    local SearchBg = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255), 0, 0), {
+        Size = UDim2.new(1,0,1,0),
+        BackgroundTransparency = 0
+    }), {
+        -- Suchleiste oben
+        AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
+            Size = UDim2.new(1,-16,0,30),
+            Position = UDim2.new(0,8,0,8),
+            BackgroundTransparency = 0.01
+        }), {
+            AddThemeObject(MakeElement("Stroke"), "Stroke"),
+            SetProps(MakeElement("Image", "rbxassetid://6031094678"), {
+                Size = UDim2.new(0,13,0,13),
+                Position = UDim2.new(0,8,0.5,0),
+                AnchorPoint = Vector2.new(0,0.5),
+                ImageColor3 = Color3.fromRGB(90,90,105)
+            }),
+            Create("TextBox", {
+                Size = UDim2.new(1,-28,1,0),
+                Position = UDim2.new(0,26,0,0),
+                BackgroundTransparency = 1,
+                TextColor3 = Color3.fromRGB(230,230,235),
+                PlaceholderText = "Search...",
+                PlaceholderColor3 = Color3.fromRGB(90,90,105),
+                Font = Enum.Font.GothamSemibold,
+                TextSize = 13,
+                ClearTextOnFocus = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Name = "SearchInput"
+            })
+        }), "Second"),
+        -- Ergebnis-Liste
+        SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 4), {
+            Size = UDim2.new(1,-16,1,-50),
+            Position = UDim2.new(0,8,0,46),
+            CanvasSize = UDim2.new(0,0,0,0),
+            Name = "ResultList"
+        }), {
+            MakeElement("List", 0, 4),
+            MakeElement("Padding", 4, 4, 4, 4)
+        })
+    }), "Main")
+
+    SearchOverlay.Parent = SearchBg
 
     local TopBarChildren = {
         WindowName,
@@ -657,11 +749,171 @@ function Library:MakeWindow(WindowConfig)
         DragPoint,
         TabBar,
         TabBarLine,
-        ContentArea
+        ContentArea,
+        SetProps(SearchOverlay, {Parent = nil})  -- wird unten gesetzt
     }), "Main")
+
+    -- SearchOverlay korrekt als Kind von MainWindow setzen
+    SearchOverlay.Parent = MainWindow
+
+    -- SearchBg als Kind von SearchOverlay
+    SearchBg.Parent = SearchOverlay
 
     local SetResizingCallback = MakeDraggable(DragPoint, MainWindow)
     MakeResizable(ResizeBtn, MainWindow, Vector2.new(420, 280), Vector2.new(1200, 800), SetResizingCallback)
+
+    -- =============================================
+    -- SUCH-LOGIK
+    -- =============================================
+    local function UpdateSearch(Query)
+        local ResultList = SearchBg.ResultList
+        -- Alte Ergebnisse löschen
+        for _, c in pairs(ResultList:GetChildren()) do
+            if c:IsA("Frame") or c:IsA("TextButton") then c:Destroy() end
+        end
+
+        if Query == "" then
+            ResultList.CanvasSize = UDim2.new(0,0,0,0)
+            return
+        end
+
+        local q = string.lower(Query)
+        local found = 0
+
+        for _, item in ipairs(AllSearchItems) do
+            if string.find(item.Name, q, 1, true) then
+                found = found + 1
+
+                local ResultBtn = AddThemeObject(SetChildren(SetProps(MakeElement("Button"), {
+                    Size = UDim2.new(1,0,0,34),
+                    BackgroundTransparency = 1,
+                    Parent = ResultList
+                }), {
+                    AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,5), {
+                        Size = UDim2.new(1,0,1,0),
+                        BackgroundTransparency = 0.02
+                    }), {
+                        -- Highlight-Akzent links
+                        Create("Frame", {
+                            Size = UDim2.new(0,2,0,14),
+                            Position = UDim2.new(0,0,0.5,0),
+                            AnchorPoint = Vector2.new(0,0.5),
+                            BackgroundColor3 = Color3.fromRGB(60,120,255),
+                            BorderSizePixel = 0,
+                            BackgroundTransparency = 0.4
+                        }, {Create("UICorner",{CornerRadius=UDim.new(0,2)})}),
+                        AddThemeObject(SetProps(MakeElement("Label", item.DisplayName, 13), {
+                            Size = UDim2.new(1,-20,1,0),
+                            Position = UDim2.new(0,12,0,0),
+                            Font = Enum.Font.FredokaOne,
+                            TextTruncate = Enum.TextTruncate.AtEnd
+                        }), "Text"),
+                        AddThemeObject(MakeElement("Stroke"), "Stroke")
+                    }), "Second")
+                }), "Second")
+
+                local capturedItem = item
+                AddConnection(ResultBtn.MouseButton1Click, function()
+                    -- Tab aktivieren der dieses Element enthält
+                    for _, tb in next, TabBar:GetChildren() do
+                        if tb:IsA("TextButton") then
+                            pcall(function()
+                                TweenService:Create(tb.Ico,      TweenInfo.new(0.22,Enum.EasingStyle.Quint), {ImageTransparency=0.55}):Play()
+                                TweenService:Create(tb.TabName,  TweenInfo.new(0.22,Enum.EasingStyle.Quint), {TextTransparency=0.5}):Play()
+                                TweenService:Create(tb.ActiveBar,TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
+                                TweenService:Create(tb,          TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
+                            end)
+                        end
+                    end
+                    for _, Cont in next, ContentArea:GetChildren() do
+                        if Cont.Name == "ItemContainer" then Cont.Visible = false end
+                    end
+                    capturedItem.Container.Visible = true
+
+                    -- Suchfeld schließen
+                    SearchOpen = false
+                    TweenService:Create(SearchOverlay, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Position=UDim2.new(0,SIDEBAR_WIDTH+1,0,47)}):Play()
+                    task.wait(0.26)
+                    SearchOverlay.Visible = false
+                    SearchBg.SearchInput.Text = ""
+                end)
+
+                AddConnection(ResultBtn.MouseEnter, function()
+                    TweenService:Create(ResultBtn, TweenInfo.new(0.15,Enum.EasingStyle.Quint), {BackgroundTransparency=0.85}):Play()
+                end)
+                AddConnection(ResultBtn.MouseLeave, function()
+                    TweenService:Create(ResultBtn, TweenInfo.new(0.15,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
+                end)
+            end
+        end
+
+        -- Kein Ergebnis
+        if found == 0 then
+            local NoResult = SetProps(MakeElement("TFrame"), {
+                Size = UDim2.new(1,0,0,40),
+                Parent = ResultList
+            })
+            AddThemeObject(SetProps(MakeElement("Label", "No results found.", 13), {
+                Size = UDim2.new(1,0,1,0),
+                TextXAlignment = Enum.TextXAlignment.Center,
+                TextTransparency = 0.5,
+                Parent = NoResult
+            }), "TextDark")
+        end
+
+        local layout = ResultList:FindFirstChildOfClass("UIListLayout")
+        if layout then
+            ResultList.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 8)
+        end
+    end
+
+    -- Such-Input Listener
+    task.defer(function()
+        local input = SearchBg:FindFirstChild("SearchInput", true)
+        if input then
+            AddConnection(input:GetPropertyChangedSignal("Text"), function()
+                UpdateSearch(input.Text)
+            end)
+        end
+    end)
+
+    -- Such-Button Toggle
+    AddConnection(SearchBtn.MouseButton1Click, function()
+        SearchOpen = not SearchOpen
+        if SearchOpen then
+            SearchOverlay.Position = UDim2.new(0, SIDEBAR_WIDTH+1+200, 0, 47)
+            SearchOverlay.Visible = true
+            TweenService:Create(SearchOverlay, TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, SIDEBAR_WIDTH+1, 0, 47)
+            }):Play()
+            task.delay(0.1, function()
+                local inp = SearchBg:FindFirstChild("SearchInput", true)
+                if inp then inp:CaptureFocus() end
+            end)
+        else
+            TweenService:Create(SearchOverlay, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {
+                Position = UDim2.new(0, SIDEBAR_WIDTH+1+200, 0, 47)
+            }):Play()
+            task.wait(0.26)
+            SearchOverlay.Visible = false
+            local inp = SearchBg:FindFirstChild("SearchInput", true)
+            if inp then inp.Text = "" end
+        end
+    end)
+
+    -- ESC schließt Suche
+    AddConnection(UserInputService.InputBegan, function(Input)
+        if Input.KeyCode == Enum.KeyCode.Escape and SearchOpen then
+            SearchOpen = false
+            TweenService:Create(SearchOverlay, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {
+                Position = UDim2.new(0, SIDEBAR_WIDTH+1+200, 0, 47)
+            }):Play()
+            task.wait(0.26)
+            SearchOverlay.Visible = false
+            local inp = SearchBg:FindFirstChild("SearchInput", true)
+            if inp then inp.Text = "" end
+        end
+    end)
 
     local MobileReopenButton = SetChildren(SetProps(MakeElement("Button"), {
         Parent = Container, Size = UDim2.new(0,40,0,40),
@@ -722,15 +974,66 @@ function Library:MakeWindow(WindowConfig)
 
     local TabFunction = {}
 
+    -- =============================================
+    -- KATEGORIE-HEADER in der Sidebar
+    -- =============================================
+    function TabFunction:MakeCategory(CategoryConfig)
+        CategoryConfig = CategoryConfig or {}
+        CategoryConfig.Name = CategoryConfig.Name or "Category"
+
+        -- Kategorie-Label (nicht klickbar, nur Beschriftung)
+        local CategoryLabel = SetChildren(SetProps(MakeElement("TFrame"), {
+            Size = UDim2.new(1, -12, 0, 22),
+            Parent = TabBar,
+            ClipsDescendants = false
+        }), {
+            -- Kleine Linie links
+            Create("Frame", {
+                Size = UDim2.new(0, 2, 0, 10),
+                Position = UDim2.new(0, 6, 0.5, 0),
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = Color3.fromRGB(60, 120, 255),
+                BorderSizePixel = 0,
+                BackgroundTransparency = 0.5
+            }, {Create("UICorner", {CornerRadius = UDim.new(0, 2)})}),
+            -- Kategorie-Text
+            AddThemeObject(SetProps(MakeElement("Label", string.upper(CategoryConfig.Name), 10), {
+                Size = UDim2.new(1, -20, 1, 0),
+                Position = UDim2.new(0, 14, 0, 0),
+                Font = Enum.Font.GothamBold,
+                TextTransparency = 0.45,
+                TextTruncate = Enum.TextTruncate.AtEnd
+            }), "TextDark"),
+        })
+
+        -- Trennlinie oberhalb (außer beim ersten)
+        local Divider = AddThemeObject(SetProps(MakeElement("Frame"), {
+            Size = UDim2.new(1, -20, 0, 1),
+            Parent = TabBar,
+            BackgroundTransparency = 0.7
+        }), "Stroke")
+
+        -- Canvas-Größe updaten
+        task.defer(function()
+            local layout = TabBar:FindFirstChildOfClass("UIListLayout")
+            if layout then
+                TabBar.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 16)
+                layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    TabBar.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 16)
+                end)
+            end
+        end)
+    end
+
+    -- =============================================
+    -- TAB
+    -- =============================================
     function TabFunction:MakeTab(TabConfig)
         TabConfig = TabConfig or {}
         TabConfig.Name        = TabConfig.Name        or "Tab"
         TabConfig.Icon        = TabConfig.Icon        or ""
         TabConfig.PremiumOnly = TabConfig.PremiumOnly or false
 
-        -- =============================================
-        -- TAB BUTTON (vertikal, Orion Style)
-        -- =============================================
         local hasIcon = TabConfig.Icon ~= ""
 
         local TabBtn = AddThemeObject(SetChildren(SetProps(MakeElement("Button"), {
@@ -740,7 +1043,6 @@ function Library:MakeWindow(WindowConfig)
             ClipsDescendants = false
         }), {
             MakeElement("Corner", 0, 6),
-            -- Aktiver Balken LINKS (Orion Style)
             Create("Frame", {
                 Name = "ActiveBar",
                 Size = UDim2.new(0, 2, 0, 18),
@@ -750,7 +1052,6 @@ function Library:MakeWindow(WindowConfig)
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1
             }, {Create("UICorner", {CornerRadius = UDim.new(0, 2)})}),
-            -- Icon
             AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), {
                 AnchorPoint = Vector2.new(0, 0.5),
                 Size = UDim2.new(0, 14, 0, 14),
@@ -759,7 +1060,6 @@ function Library:MakeWindow(WindowConfig)
                 Name = "Ico",
                 Visible = hasIcon
             }), "Text"),
-            -- Tab Name
             AddThemeObject(SetProps(MakeElement("Label", TabConfig.Name, 12), {
                 AnchorPoint = Vector2.new(0, 0.5),
                 Size = UDim2.new(1, hasIcon and -30 or -16, 0, 14),
@@ -771,7 +1071,6 @@ function Library:MakeWindow(WindowConfig)
             }), "Text"),
         }), "Second")
 
-        -- Canvas-Größe für vertikales Scrollen aktualisieren
         task.defer(function()
             local layout = TabBar:FindFirstChildOfClass("UIListLayout")
             if layout then
@@ -802,27 +1101,25 @@ function Library:MakeWindow(WindowConfig)
         ClickSound.Parent = TabBtn
 
         local function ActivateTab()
-            -- Alle anderen Tabs deaktivieren
             for _, tb in next, TabBar:GetChildren() do
                 if tb:IsA("TextButton") then
                     pcall(function()
                         TweenService:Create(tb.Ico,      TweenInfo.new(0.22,Enum.EasingStyle.Quint), {ImageTransparency=0.55}):Play()
-                        TweenService:Create(tb.TabName,  TweenInfo.new(0.22,Enum.EasingStyle.Quint), {TextTransparency=0.5}):Play()
+                        TweenService:Create(tb.TabName,  TweenService:Create(tb.TabName, TweenInfo.new(0.22,Enum.EasingStyle.Quint), {TextTransparency=0.5}):Play()
                         TweenService:Create(tb.ActiveBar,TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
                         TweenService:Create(tb,          TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=1}):Play()
                     end)
                 end
             end
-            -- Alle Content-Bereiche verstecken
             for _, Cont in next, ContentArea:GetChildren() do
                 if Cont.Name == "ItemContainer" then Cont.Visible = false end
             end
-            -- Diesen Tab aktivieren
             TweenService:Create(TabBtn.Ico,      TweenInfo.new(0.22,Enum.EasingStyle.Quint), {ImageTransparency=0.05}):Play()
             TweenService:Create(TabBtn.TabName,  TweenInfo.new(0.22,Enum.EasingStyle.Quint), {TextTransparency=0}):Play()
             TweenService:Create(TabBtn.ActiveBar,TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=0}):Play()
             TweenService:Create(TabBtn,          TweenInfo.new(0.22,Enum.EasingStyle.Quint), {BackgroundTransparency=0.88}):Play()
             ItemContainer.Visible = true
+            ActiveTab = ItemContainer
         end
 
         if FirstTab then
@@ -854,6 +1151,7 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(SetProps(MakeElement("Label",Text,15), {Size=UDim2.new(1,-12,1,0), Position=UDim2.new(0,12,0,0), Font=Enum.Font.FredokaOne, Name="Content"}), "Text"),
                     AddThemeObject(MakeElement("Stroke"), "Stroke")
                 }), "Second")
+                RegisterSearchItem(Text, ItemContainer, LabelFrame)
                 local LabelFunction = {}
                 function LabelFunction:Set(ToChange) LabelFrame.Content.Text = ToChange end
                 return LabelFunction
@@ -873,6 +1171,7 @@ function Library:MakeWindow(WindowConfig)
                     ParagraphFrame.Size = UDim2.new(1,0,0,ParagraphFrame.Content.TextBounds.Y+35)
                 end)
                 ParagraphFrame.Content.Text = Content
+                RegisterSearchItem(Text, ItemContainer, ParagraphFrame)
                 local ParagraphFunction = {}
                 function ParagraphFunction:Set(ToChange) ParagraphFrame.Content.Text = ToChange end
                 return ParagraphFunction
@@ -906,6 +1205,8 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement("Stroke"), "Stroke"),
                     Click
                 }), "Second")
+
+                RegisterSearchItem(ButtonConfig.Name, ItemContainer, ButtonFrame)
 
                 AddConnection(Click.MouseEnter, function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {BackgroundColor3=Color3.fromRGB(22,22,26)}):Play()
@@ -959,6 +1260,8 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement("Stroke"), "Stroke"),
                     ToggleTrack, Click
                 }), "Second")
+
+                RegisterSearchItem(ToggleConfig.Name, ItemContainer, ToggleFrame)
 
                 function Toggle:Set(Value)
                     Toggle.Value = Value
@@ -1018,6 +1321,8 @@ function Library:MakeWindow(WindowConfig)
                     SliderValueLabel, AddThemeObject(MakeElement("Stroke"),"Stroke"), SliderBar
                 }), "Second")
 
+                RegisterSearchItem(SliderConfig.Name, ItemContainer, SliderFrame)
+
                 SliderBar.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then Dragging=true end end)
                 SliderBar.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then Dragging=false end end)
                 UserInputService.InputChanged:Connect(function(i)
@@ -1068,6 +1373,8 @@ function Library:MakeWindow(WindowConfig)
                     }),{Size=UDim2.new(1,0,0,38),ClipsDescendants=true,Name="F"}),
                     AddThemeObject(MakeElement("Stroke"),"Stroke"), MakeElement("Corner")
                 }), "Second")
+
+                RegisterSearchItem(DropdownConfig.Name, ItemContainer, DropdownFrame)
 
                 AddConnection(DropdownList:GetPropertyChangedSignal("AbsoluteContentSize"),function()
                     DropdownContainer.CanvasSize=UDim2.new(0,0,0,DropdownList.AbsoluteContentSize.Y)
@@ -1140,6 +1447,8 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement("Stroke"),"Stroke"), BindBox, Click
                 }), "Second")
 
+                RegisterSearchItem(BindConfig.Name, ItemContainer, BindFrame)
+
                 AddConnection(BindBox.Value:GetPropertyChangedSignal("Text"),function()
                     TweenService:Create(BindBox,TweenInfo.new(0.25,Enum.EasingStyle.Quint),{Size=UDim2.new(0,BindBox.Value.TextBounds.X+16,0,24)}):Play()
                 end)
@@ -1192,6 +1501,8 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement("Stroke"),"Stroke"), TextContainer, Click
                 }), "Second")
 
+                RegisterSearchItem(TextboxConfig.Name, ItemContainer, TextboxFrame)
+
                 AddConnection(TextboxActual:GetPropertyChangedSignal("Text"),function()
                     TweenService:Create(TextContainer,TweenInfo.new(0.45,Enum.EasingStyle.Quint),{Size=UDim2.new(0,TextboxActual.TextBounds.X+16,0,24)}):Play()
                 end)
@@ -1229,6 +1540,8 @@ function Library:MakeWindow(WindowConfig)
                     }),{Size=UDim2.new(1,0,0,38),ClipsDescendants=true,Name="F"}),
                     ColorpickerContainer, AddThemeObject(MakeElement("Stroke"),"Stroke")
                 }),"Second")
+
+                RegisterSearchItem(ColorpickerConfig.Name, ItemContainer, ColorpickerFrame)
 
                 AddConnection(Click.MouseButton1Click,function()
                     Colorpicker.Toggled=not Colorpicker.Toggled
@@ -1316,7 +1629,7 @@ function Library:MakeWindow(WindowConfig)
 end
 
 -- =============================================
--- NOTIFICATION SYSTEM (unveraendert)
+-- NOTIFICATION SYSTEM
 -- =============================================
 local Configs_HUB = {
     Cor_Hub=Color3.fromRGB(15,15,15), Cor_Options=Color3.fromRGB(15,15,15),
