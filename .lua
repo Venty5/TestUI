@@ -1,4 +1,4 @@
---V3
+--V30l.1
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -360,7 +360,7 @@ local function ShowIntro(windowName, introIcon, duration, callback)
         Parent = Container,
         Size = UDim2.new(1,0,1,0),
         BackgroundColor3 = Color3.fromRGB(0,0,0),
-        BackgroundTransparency = 0,
+        BackgroundTransparency = 1,
         ZIndex = 100,
         BorderSizePixel = 0
     })
