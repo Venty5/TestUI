@@ -1,4 +1,4 @@
---V3.1
+--V3
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -355,79 +355,53 @@ function Library:Init()
     end
 end
 
-local function ShowLoadingScreen(duration, callback)
+-- Schlichtes Intro: Titeltext + Fortschrittsbalken, mittig auf dem Bildschirm
+local function ShowIntro(windowName, introIcon, duration, callback)
     local Overlay = Create("Frame", {
         Parent = Container,
         Size = UDim2.new(1,0,1,0),
         BackgroundColor3 = Color3.fromRGB(0,0,0),
-        BackgroundTransparency = 1,
+        BackgroundTransparency = 0.55,
         ZIndex = 100,
         BorderSizePixel = 0
     })
 
-    local LoadWindow = Create("Frame", {
-        Parent = Container,
+    -- Kleines Icon über dem Namen (optional)
+    local IntroIcon = Create("ImageLabel", {
+        Parent = Overlay,
         AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0, 300, 0, 130),
-        BackgroundColor3 = Color3.fromRGB(10, 10, 13),
-        BorderSizePixel = 0,
-        ZIndex = 101,
-        BackgroundTransparency = 1
-    }, {
-        Create("UICorner", {CornerRadius = UDim.new(0, 12)}),
-        Create("UIStroke", {Color = Color3.fromRGB(35, 35, 42), Thickness = 1.2})
-    })
-
-    local LogoImg = Create("ImageLabel", {
-        Parent = LoadWindow,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.new(0.5, 0, 0, 18),
-        Size = UDim2.new(0, 24, 0, 24),
+        Position = UDim2.new(0.5, 0, 0.5, -38),
+        Size = UDim2.new(0, 28, 0, 28),
         BackgroundTransparency = 1,
-        Image = "rbxassetid://125829575723612",
+        Image = introIcon or "",
         ImageTransparency = 1,
-        ZIndex = 102
+        ZIndex = 101
     })
 
-    local LoadTitle = Create("TextLabel", {
-        Parent = LoadWindow,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.new(0.5, 0, 0, 48),
-        Size = UDim2.new(1, -20, 0, 18),
+    local IntroTitle = Create("TextLabel", {
+        Parent = Overlay,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, -6),
+        Size = UDim2.new(0, 320, 0, 22),
         BackgroundTransparency = 1,
-        Text = "Venty",
+        Text = windowName or "Venty",
         TextColor3 = Color3.fromRGB(230, 230, 235),
-        TextSize = 17,
+        TextSize = 19,
         Font = Enum.Font.GothamBlack,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextTransparency = 1,
-        ZIndex = 102
+        ZIndex = 101
     })
 
-    local LoadSub = Create("TextLabel", {
-        Parent = LoadWindow,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.new(0.5, 0, 0, 70),
-        Size = UDim2.new(1, -20, 0, 13),
-        BackgroundTransparency = 1,
-        Text = "Initializing...",
-        TextColor3 = Color3.fromRGB(100, 100, 115),
-        TextSize = 12,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Center,
-        TextTransparency = 1,
-        ZIndex = 102
-    })
-
+    -- Balken-Hintergrund
     local BarBg = Create("Frame", {
-        Parent = LoadWindow,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.new(0.5, 0, 0, 90),
-        Size = UDim2.new(1, -40, 0, 3),
-        BackgroundColor3 = Color3.fromRGB(25, 25, 32),
+        Parent = Overlay,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 22),
+        Size = UDim2.new(0, 220, 0, 3),
+        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
         BorderSizePixel = 0,
-        ZIndex = 102
+        ZIndex = 101
     }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
     local BarFill = Create("Frame", {
@@ -435,64 +409,33 @@ local function ShowLoadingScreen(duration, callback)
         Size = UDim2.new(0, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(60, 120, 255),
         BorderSizePixel = 0,
-        ZIndex = 103
+        ZIndex = 102
     }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})})
 
-    local PercLabel = Create("TextLabel", {
-        Parent = LoadWindow,
-        AnchorPoint = Vector2.new(0.5, 0),
-        Position = UDim2.new(0.5, 0, 0, 100),
-        Size = UDim2.new(1, -40, 0, 13),
-        BackgroundTransparency = 1,
-        Text = "0%",
-        TextColor3 = Color3.fromRGB(70, 70, 88),
-        TextSize = 10,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        TextTransparency = 1,
-        ZIndex = 102
-    })
+    -- Einblenden
+    TweenService:Create(IntroIcon,  TweenInfo.new(0.35, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
+    TweenService:Create(IntroTitle, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
+    task.wait(0.2)
 
-    TweenService:Create(LoadWindow, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {BackgroundTransparency = 0}):Play()
-    task.wait(0.1)
-    TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 0}):Play()
-    TweenService:Create(LoadTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
-    task.wait(0.15)
-    TweenService:Create(LoadSub,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
-    TweenService:Create(PercLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 0}):Play()
-    task.wait(0.1)
-
-    local steps = {"Checking environment...", "Loading modules...", "Applying settings...", "Ready!"}
-    local stepDur = duration / #steps
-
-    for i, stepText in ipairs(steps) do
-        LoadSub.Text = stepText
-        local targetScale = i / #steps
-        TweenService:Create(BarFill, TweenInfo.new(stepDur * 0.9, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-            Size = UDim2.new(targetScale, 0, 1, 0)
+    -- Balken füllen über LoadDuration
+    local steps = 4
+    local stepDur = duration / steps
+    for i = 1, steps do
+        TweenService:Create(BarFill, TweenInfo.new(stepDur * 0.92, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Size = UDim2.new(i / steps, 0, 1, 0)
         }):Play()
-        local startPct = math.floor((i-1)/#steps * 100)
-        local endPct   = math.floor(i/#steps * 100)
-        local t0 = tick()
-        while tick() - t0 < stepDur do
-            local progress = math.clamp((tick()-t0)/stepDur, 0, 1)
-            PercLabel.Text = math.floor(startPct + (endPct-startPct)*progress).."%"
-            task.wait()
-        end
-        PercLabel.Text = endPct.."%"
+        task.wait(stepDur)
     end
 
-    task.wait(0.12)
-    TweenService:Create(LoadWindow, TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(LogoImg,   TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
-    TweenService:Create(LoadTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
-    TweenService:Create(LoadSub,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
-    TweenService:Create(PercLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
-    TweenService:Create(BarBg,     TweenInfo.new(0.25, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(BarFill,   TweenInfo.new(0.25, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Overlay,   TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    task.wait(0.1)
+
+    -- Ausblenden
+    TweenService:Create(IntroIcon,  TweenInfo.new(0.3, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+    TweenService:Create(IntroTitle, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
+    TweenService:Create(BarBg,      TweenInfo.new(0.3, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(BarFill,    TweenInfo.new(0.3, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Overlay,    TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
     task.wait(0.5)
-    LoadWindow:Destroy()
     Overlay:Destroy()
     if callback then callback() end
 end
@@ -548,7 +491,6 @@ function Library:MakeWindow(WindowConfig)
         })
     end
 
-    -- Close button
     local CloseBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
         Position = UDim2.new(0,112,0,0),
@@ -561,7 +503,6 @@ function Library:MakeWindow(WindowConfig)
         }), "Text")
     })
 
-    -- Minimize button
     local MinimizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
         Position = UDim2.new(0,74,0,0),
@@ -575,7 +516,6 @@ function Library:MakeWindow(WindowConfig)
         }), "Text")
     })
 
-    -- Resize button
     local ResizeBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
         Position = UDim2.new(0,36,0,0),
@@ -588,7 +528,6 @@ function Library:MakeWindow(WindowConfig)
         }), "Text")
     })
 
-    -- Search button (leftmost = position 0)
     local SearchBtn = SetChildren(SetProps(MakeElement("Button"), {
         Size = UDim2.new(0,32,1,0),
         Position = UDim2.new(0,0,0,0),
@@ -602,14 +541,12 @@ function Library:MakeWindow(WindowConfig)
         }), "Text")
     })
 
-    -- Button container: 4 buttons x 32px = 144px wide, 3 dividers
     local ButtonContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
         Size = UDim2.new(0,144,0,26),
         Position = UDim2.new(1,-8,0.5,0),
         AnchorPoint = Vector2.new(1,0.5)
     }), {
         AddThemeObject(MakeElement("Stroke"), "Stroke"),
-        -- dividers at 36, 72, 108
         AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,36,0,0)}), "Stroke"),
         AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,72,0,0)}), "Stroke"),
         AddThemeObject(SetProps(MakeElement("Frame"), {Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,108,0,0)}), "Stroke"),
@@ -623,7 +560,6 @@ function Library:MakeWindow(WindowConfig)
         Size = UDim2.new(1,0,0,46)
     })
 
-    -- Search overlay (hidden by default, covers ContentArea)
     local SearchOverlay = SetProps(MakeElement("TFrame"), {
         Size = UDim2.new(1,-(SIDEBAR_WIDTH+1),1,-46),
         Position = UDim2.new(0,SIDEBAR_WIDTH+1,0,46),
@@ -638,7 +574,6 @@ function Library:MakeWindow(WindowConfig)
         MakeElement("Padding", 10,10,10,10)
     }), "Second")
 
-    -- Search input bar
     local SearchBarBg = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255),0,6), {
         Size = UDim2.new(1,0,0,32),
         BackgroundTransparency = 0.02
@@ -670,7 +605,6 @@ function Library:MakeWindow(WindowConfig)
 
     SearchBarBg.Parent = SearchBg
 
-    -- Results container
     local SearchResults = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 4), {
         Size = UDim2.new(1,0,1,-42),
         Position = UDim2.new(0,0,0,42),
@@ -686,7 +620,6 @@ function Library:MakeWindow(WindowConfig)
 
     SearchBg.Parent = SearchOverlay
 
-    -- Vertical sidebar TabBar
     local TabBar = AddThemeObject(SetChildren(SetProps(MakeElement("ScrollFrame", Color3.fromRGB(255,255,255), 0), {
         Size = UDim2.new(0,SIDEBAR_WIDTH,1,-46),
         Position = UDim2.new(0,0,0,46),
@@ -705,7 +638,6 @@ function Library:MakeWindow(WindowConfig)
         MakeElement("Padding", 6, 6, 6, 6)
     }), "Second")
 
-    -- Vertical divider line between sidebar and content
     local TabBarLine = AddThemeObject(SetProps(MakeElement("Frame"), {
         Size = UDim2.new(0,1,1,-46),
         Position = UDim2.new(0,SIDEBAR_WIDTH,0,46)
@@ -760,7 +692,6 @@ function Library:MakeWindow(WindowConfig)
         MakeElement("Corner", 1)
     })
 
-    -- Search logic
     local function DoSearch(query)
         for _, child in pairs(SearchResults:GetChildren()) do
             if child:IsA("Frame") or child:IsA("TextButton") then
@@ -821,7 +752,6 @@ function Library:MakeWindow(WindowConfig)
         DoSearch(SearchInput.Text)
     end)
 
-    -- Toggle search overlay
     local function ToggleSearch(state)
         SearchOpen = state
         SearchOverlay.Visible = SearchOpen
@@ -880,12 +810,21 @@ function Library:MakeWindow(WindowConfig)
         Minimized = not Minimized
     end)
 
-    ShowLoadingScreen(WindowConfig.LoadDuration, function()
+    -- Intro anzeigen (nur wenn IntroEnabled)
+    if WindowConfig.IntroEnabled then
+        ShowIntro(
+            WindowConfig.Name,
+            WindowConfig.IntroToggleIcon,
+            WindowConfig.LoadDuration,
+            function()
+                MainWindow.Visible = true
+            end
+        )
+    else
         MainWindow.Visible = true
-    end)
+    end
 
     local TabFunction = {}
-    -- Track which category headers have been created
     local CreatedCategories = {}
 
     function TabFunction:MakeTab(TabConfig)
@@ -895,7 +834,6 @@ function Library:MakeWindow(WindowConfig)
         TabConfig.PremiumOnly = TabConfig.PremiumOnly or false
         TabConfig.Category    = TabConfig.Category    or nil
 
-        -- Insert category label if new
         if TabConfig.Category and not CreatedCategories[TabConfig.Category] then
             CreatedCategories[TabConfig.Category] = true
             local CatLabel = AddThemeObject(SetProps(MakeElement("Label", TabConfig.Category:upper(), 10), {
@@ -907,13 +845,11 @@ function Library:MakeWindow(WindowConfig)
                 Name = "Cat_"..TabConfig.Category,
                 Parent = TabBar
             }), "TextDark")
-            -- Small padding on top except first
             local pad = Instance.new("UIPadding", CatLabel)
             pad.PaddingLeft = UDim.new(0, 4)
             pad.PaddingTop = UDim.new(0, 4)
         end
 
-        -- Vertical tab button
         local TabBtn = AddThemeObject(SetChildren(SetProps(MakeElement("Button"), {
             Size = UDim2.new(1,0,0,TAB_HEIGHT),
             Parent = TabBar,
@@ -921,7 +857,6 @@ function Library:MakeWindow(WindowConfig)
             ClipsDescendants = false,
             Name = "TabBtn_"..TabConfig.Name
         }), {
-            -- Active indicator: left vertical bar
             Create("Frame", {
                 Name = "ActiveBar",
                 Size = UDim2.new(0,2,0,16),
@@ -931,7 +866,6 @@ function Library:MakeWindow(WindowConfig)
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1
             }, {Create("UICorner",{CornerRadius=UDim.new(1,0)})}),
-            -- Icon
             AddThemeObject(SetProps(MakeElement("Image", TabConfig.Icon), {
                 AnchorPoint = Vector2.new(0,0.5),
                 Size = UDim2.new(0,15,0,15),
@@ -939,7 +873,6 @@ function Library:MakeWindow(WindowConfig)
                 ImageTransparency = 0.55,
                 Name = "Ico"
             }), "Text"),
-            -- Name label
             AddThemeObject(SetProps(MakeElement("Label", TabConfig.Name, 13), {
                 AnchorPoint = Vector2.new(0,0.5),
                 Size = UDim2.new(1, -(TAB_PADDING*2 + (TabConfig.Icon ~= "" and 22 or 4)), 0, 14),
@@ -951,7 +884,6 @@ function Library:MakeWindow(WindowConfig)
             Create("UICorner", {CornerRadius = UDim.new(0,5)})
         }), "Second")
 
-        -- Update canvas size
         task.defer(function()
             local layout = TabBar:FindFirstChildOfClass("UIListLayout")
             if layout then
