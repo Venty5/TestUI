@@ -1,4 +1,4 @@
---V3
+--V3.1
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -660,7 +660,7 @@ function Library:MakeWindow(WindowConfig)
         Parent = SearchBarBg
     })
 
-    local SearchIcon = SetProps(MakeElement("Image", "rbxassetid://6031068426"), {
+    local SearchIcon = SetProps(MakeElement("Image", "rbxassetid://71637661279268"), {
         Size = UDim2.new(0,14,0,14),
         Position = UDim2.new(0,10,0.5,0),
         AnchorPoint = Vector2.new(0,0.5),
