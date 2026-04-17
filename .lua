@@ -1,4 +1,4 @@
---V30l.1 (Keybind Edition - inline keybind on every element) [FIXED]
+--V30l.1
 
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -7,14 +7,11 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- FIX 1: Wrap destroy-loop in pcall to prevent nil-value errors on already-destroyed GUIs
 for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
-    pcall(function()
-        if gui and gui.Parent and gui:IsA("ScreenGui") and gui:FindFirstChild("__VentyLock") then
-            gui:Destroy()
-            task.wait(0.05)
-        end
-    end)
+    if gui:IsA("ScreenGui") and gui:FindFirstChild("__VentyLock") then
+        gui:Destroy()
+        task.wait(0.05)
+    end
 end
 
 local Library = {
@@ -59,15 +56,9 @@ end
 
 local function AddConnection(Signal, Function)
     if not Library:IsRunning() then return end
-    -- FIX 2: Guard against nil Signal
-    if not Signal then return end
-    local ok, conn = pcall(function()
-        return Signal:Connect(Function)
-    end)
-    if ok and conn then
-        table.insert(Library.Connections, conn)
-        return conn
-    end
+    local conn = Signal:Connect(Function)
+    table.insert(Library.Connections, conn)
+    return conn
 end
 
 task.spawn(function()
@@ -75,10 +66,7 @@ task.spawn(function()
         task.wait()
     end
     for _, c in next, Library.Connections do
-        -- FIX 3: Guard disconnect calls
-        if c and typeof(c) == "RBXScriptConnection" then
-            pcall(function() c:Disconnect() end)
-        end
+        c:Disconnect()
     end
 end)
 
@@ -166,18 +154,12 @@ local function MakeElement(ElementName, ...)
 end
 
 local function SetProps(Element, Props)
-    -- FIX 4: Use pairs instead of deprecated table.foreach
-    for Property, Value in pairs(Props) do
-        Element[Property] = Value
-    end
+    table.foreach(Props, function(Property, Value) Element[Property] = Value end)
     return Element
 end
 
 local function SetChildren(Element, Children)
-    -- FIX 5: Use pairs instead of deprecated table.foreach
-    for _, Child in pairs(Children) do
-        Child.Parent = Element
-    end
+    table.foreach(Children, function(_, Child) Child.Parent = Element end)
     return Element
 end
 
@@ -219,14 +201,10 @@ local function UnpackColor(Color)
 end
 
 local function LoadCfg(Config)
-    local ok, Data = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(Config)
-    end)
-    if not ok or not Data then return end
-    -- FIX 6: Use pairs instead of deprecated table.foreach
-    for a, b in pairs(Data) do
+    local Data = game:GetService("HttpService"):JSONDecode(Config)
+    table.foreach(Data, function(a, b)
         if Library.Flags[a] then
-            task.spawn(function()
+            spawn(function()
                 if Library.Flags[a].Type == "Colorpicker" then
                     Library.Flags[a]:Set(UnpackColor(b))
                 else
@@ -234,7 +212,7 @@ local function LoadCfg(Config)
                 end
             end)
         end
-    end
+    end)
 end
 
 local function SaveCfg(Name)
@@ -244,12 +222,6 @@ local function SaveCfg(Name)
             if v.Type == "Colorpicker" then Data[i] = PackColor(v.Value)
             else Data[i] = v.Value end
         end
-    end
-    -- FIX 7: Actually write config if SaveCfg is enabled
-    if Library.SaveCfg and Library.Folder then
-        pcall(function()
-            writefile(Library.Folder.."/"..tostring(Name)..".txt", game:GetService("HttpService"):JSONEncode(Data))
-        end)
     end
 end
 
@@ -322,158 +294,6 @@ CreateElement("Label", function(Text, TextSize, Transparency)
     })
 end)
 
--- ─────────────────────────────────────────────────────────────
--- INLINE KEYBIND HELPER
--- ─────────────────────────────────────────────────────────────
-local function MakeInlineKeybind(ParentFrame, KeibindConfig, RightOffset)
-    KeibindConfig = KeibindConfig or {}
-    local Default  = KeibindConfig.Default  or Enum.KeyCode.Unknown
-    local Callback = KeibindConfig.Callback or function() end
-    local Hold     = KeibindConfig.Hold     or false
-    local Flag     = KeibindConfig.Flag     or nil
-    local Save     = KeibindConfig.Save     or false
-
-    RightOffset = RightOffset or 8
-
-    local Bind    = { Value = nil, Binding = false, Type = "Bind", Save = Save }
-    local Holding = false
-
-    local Badge = Create("Frame", {
-        Size            = UDim2.new(0, 28, 0, 20),
-        AnchorPoint     = Vector2.new(1, 0.5),
-        Position        = UDim2.new(1, -RightOffset, 0.5, 0),
-        BackgroundColor3= Color3.fromRGB(10, 10, 13),
-        BorderSizePixel = 0,
-        ZIndex          = 5,
-        Parent          = ParentFrame,
-        Name            = "__InlineKeybind"
-    })
-    Create("UICorner",  { CornerRadius = UDim.new(0, 4) }, {}):Parent = Badge
-    Create("UIStroke",  { Color = Color3.fromRGB(45, 45, 55), Thickness = 1 }):Parent = Badge
-
-    local BadgeLabel = Create("TextLabel", {
-        Size             = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text             = "...",
-        TextColor3       = Color3.fromRGB(130, 130, 145),
-        TextSize         = 10,
-        Font             = Enum.Font.GothamBold,
-        TextXAlignment   = Enum.TextXAlignment.Center,
-        TextTruncate     = Enum.TextTruncate.AtEnd,
-        ZIndex           = 6,
-        Parent           = Badge,
-        Name             = "KeyLabel"
-    })
-
-    local function ResizeBadge()
-        local tw = BadgeLabel.TextBounds.X
-        TweenService:Create(Badge, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {
-            Size = UDim2.new(0, math.max(28, tw + 12), 0, 20)
-        }):Play()
-    end
-    AddConnection(BadgeLabel:GetPropertyChangedSignal("TextBounds"), ResizeBadge)
-
-    local ClickBtn = Create("TextButton", {
-        Size              = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text              = "",
-        ZIndex            = 7,
-        Parent            = Badge
-    })
-
-    local function SetBindingState(active)
-        if active then
-            TweenService:Create(Badge, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(20, 30, 50) }):Play()
-            -- FIX 8: Safely find UIStroke
-            local stroke = Badge:FindFirstChildOfClass("UIStroke")
-            if stroke then TweenService:Create(stroke, TweenInfo.new(0.15), { Color = Color3.fromRGB(60, 120, 255) }):Play() end
-            BadgeLabel.Text = "..."
-            BadgeLabel.TextColor3 = Color3.fromRGB(60, 120, 255)
-        else
-            TweenService:Create(Badge, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(10, 10, 13) }):Play()
-            local stroke = Badge:FindFirstChildOfClass("UIStroke")
-            if stroke then TweenService:Create(stroke, TweenInfo.new(0.15), { Color = Color3.fromRGB(45, 45, 55) }):Play() end
-            BadgeLabel.TextColor3 = Color3.fromRGB(130, 130, 145)
-        end
-    end
-
-    function Bind:Set(Key)
-        Bind.Binding = false
-        Bind.Value   = Key or Bind.Value
-        -- FIX 9: Safe type-checking for Value
-        if type(Bind.Value) ~= "string" then
-            Bind.Value = Bind.Value and Bind.Value.Name or "?"
-        end
-        local display = tostring(Bind.Value)
-        display = display:gsub("^LeftControl$", "LCtrl"):gsub("^RightControl$","RCtrl")
-                         :gsub("^LeftShift$","LShft"):gsub("^RightShift$","RShft")
-                         :gsub("^LeftAlt$","LAlt"):gsub("^RightAlt$","RAlt")
-                         :gsub("^MouseButton(%d)$","M%1"):gsub("^KeyCode%.","")
-        BadgeLabel.Text = display
-        SetBindingState(false)
-    end
-
-    AddConnection(ClickBtn.MouseEnter, function()
-        TweenService:Create(Badge, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(16, 16, 22) }):Play()
-    end)
-    AddConnection(ClickBtn.MouseLeave, function()
-        if not Bind.Binding then
-            TweenService:Create(Badge, TweenInfo.new(0.12), { BackgroundColor3 = Color3.fromRGB(10, 10, 13) }):Play()
-        end
-    end)
-
-    AddConnection(ClickBtn.InputEnded, function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
-            if Bind.Binding then return end
-            Bind.Binding = true
-            SetBindingState(true)
-        end
-    end)
-
-    AddConnection(UserInputService.InputBegan, function(i)
-        if UserInputService:GetFocusedTextBox() then return end
-        -- FIX 10: Safe comparison – i.UserInputType may not have .Name in all contexts
-        local keyName = pcall(function() return i.KeyCode.Name end) and i.KeyCode.Name or ""
-        local mouseTypeName = ""
-        pcall(function() mouseTypeName = i.UserInputType.Name end)
-
-        if (keyName == Bind.Value or mouseTypeName == Bind.Value) and not Bind.Binding then
-            if Hold then
-                Holding = true
-                Callback(Holding)
-            else
-                Callback()
-            end
-        elseif Bind.Binding then
-            local Key
-            pcall(function() if not CheckKey(BlacklistedKeys, i.KeyCode) then Key = i.KeyCode end end)
-            pcall(function() if CheckKey(WhitelistedMouse, i.UserInputType) and not Key then Key = i.UserInputType end end)
-            Key = Key or Bind.Value
-            Bind:Set(Key)
-            SaveCfg(game.GameId)
-        end
-    end)
-
-    AddConnection(UserInputService.InputEnded, function(i)
-        local keyName = ""
-        local mouseTypeName = ""
-        pcall(function() keyName = i.KeyCode.Name end)
-        pcall(function() mouseTypeName = i.UserInputType.Name end)
-        if keyName == Bind.Value or mouseTypeName == Bind.Value then
-            if Hold and Holding then
-                Holding = false
-                Callback(Holding)
-            end
-        end
-    end)
-
-    Bind:Set(Default)
-    if Flag then Library.Flags[Flag] = Bind end
-    return Bind
-end
-
--- ─────────────────────────────────────────────────────────────
-
 local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
     SetProps(MakeElement("List"), {
         HorizontalAlignment = Enum.HorizontalAlignment.Center,
@@ -489,7 +309,7 @@ local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
 })
 
 function Library:MakeNotification(NotificationConfig)
-    task.spawn(function()
+    spawn(function()
         NotificationConfig.Name    = NotificationConfig.Name    or "Notification"
         NotificationConfig.Content = NotificationConfig.Content or "Test"
         NotificationConfig.Image   = NotificationConfig.Image   or "rbxassetid://4384403532"
@@ -510,23 +330,17 @@ function Library:MakeNotification(NotificationConfig)
             SetProps(MakeElement("Label", NotificationConfig.Content, 14), {Size=UDim2.new(1,0,0,0), Position=UDim2.new(0,0,0,25), Font=Enum.Font.FredokaOne, Name="Content", AutomaticSize=Enum.AutomaticSize.Y, TextColor3=Color3.fromRGB(220,220,220), TextWrapped=true})
         })
         TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position=UDim2.new(0,0,0,0)}):Play()
-        task.wait(NotificationConfig.Time - 0.88)
-        -- FIX 11: Guard against frame being destroyed before tween
-        if not NotificationFrame or not NotificationFrame.Parent then return end
+        wait(NotificationConfig.Time - 0.88)
         TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency=1}):Play()
         TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency=0.6}):Play()
-        task.wait(0.3)
-        if not NotificationFrame or not NotificationFrame.Parent then return end
-        local stroke = NotificationFrame:FindFirstChildOfClass("UIStroke")
-        if stroke then TweenService:Create(stroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency=0.9}):Play() end
+        wait(0.3)
+        TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency=0.9}):Play()
         TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency=0.4}):Play()
         TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency=0.5}):Play()
-        task.wait(0.05)
+        wait(0.05)
         NotificationFrame:TweenPosition(UDim2.new(1,20,0,0),'In','Quint',0.8,true)
-        task.wait(1.35)
-        if NotificationFrame and NotificationFrame.Parent then
-            NotificationFrame:Destroy()
-        end
+        wait(1.35)
+        NotificationFrame:Destroy()
     end)
 end
 
@@ -616,9 +430,135 @@ local function ShowIntro(windowName, introIcon, duration, callback)
     TweenService:Create(BarFill,    TweenInfo.new(0.3, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
     TweenService:Create(Overlay,    TweenInfo.new(0.45, Enum.EasingStyle.Quint), {BackgroundTransparency = 1}):Play()
     task.wait(0.5)
-    if Overlay and Overlay.Parent then Overlay:Destroy() end
+    Overlay:Destroy()
     if callback then callback() end
 end
+
+-- ============================================================
+-- KEYBIND HELPER (wird intern von jedem Element genutzt)
+-- ============================================================
+local function MakeInlineKeybind(ParentFrame, KeepRightOf, KeybindConfig)
+    KeybindConfig = KeybindConfig or {}
+    local DefaultKey  = KeybindConfig.Default  or nil
+    local OnTriggered = KeybindConfig.Callback  or nil
+    local Hold        = KeybindConfig.Hold      or false
+    local Flag        = KeybindConfig.Flag      or nil
+    local Save        = KeybindConfig.Save      or false
+
+    if not OnTriggered then return end   -- kein Callback = kein Keybind
+
+    local Bind = { Value = nil, Binding = false, Type = "Bind", Save = Save }
+    local Holding = false
+
+    -- Box selbst
+    local BindLabel = AddThemeObject(SetProps(MakeElement("Label", "–", 10), {
+        Size        = UDim2.new(1, 0, 1, 0),
+        Font        = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Name        = "Value",
+        ZIndex      = 6
+    }), "TextDark")
+
+    local BindBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255,255,255), 0, 4), {
+        Size        = UDim2.new(0, 28, 0, 20),
+        Position    = UDim2.new(1, -8, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        ZIndex      = 5,
+        Parent      = ParentFrame
+    }), {
+        AddThemeObject(MakeElement("Stroke"), "Stroke"),
+        BindLabel
+    }), "Main")
+
+    -- Text anpassen wenn Key gesetzt
+    local function UpdateLabel()
+        if Bind.Value then
+            local name = tostring(Bind.Value)
+            -- kürzen wenn zu lang
+            if #name > 5 then name = name:sub(1,4)..".." end
+            BindLabel.Text = name
+        else
+            BindLabel.Text = "–"
+        end
+        local tw = math.max(28, BindLabel.TextBounds.X + 12)
+        TweenService:Create(BindBox, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {
+            Size = UDim2.new(0, tw, 0, 20)
+        }):Play()
+    end
+
+    -- Klick auf Box = Binding-Modus
+    local BindClick = SetProps(MakeElement("Button"), {
+        Size   = UDim2.new(1, 0, 1, 0),
+        ZIndex = 7,
+        Parent = BindBox
+    })
+
+    AddConnection(BindClick.InputEnded, function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            if Bind.Binding then return end
+            Bind.Binding = true
+            BindLabel.Text = "..."
+            TweenService:Create(BindBox, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+                BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+            }):Play()
+        end
+    end)
+
+    AddConnection(UserInputService.InputBegan, function(i)
+        if UserInputService:GetFocusedTextBox() then return end
+
+        if Bind.Binding then
+            local Key
+            pcall(function() if not CheckKey(BlacklistedKeys, i.KeyCode) then Key = i.KeyCode end end)
+            pcall(function() if CheckKey(WhitelistedMouse, i.UserInputType) and not Key then Key = i.UserInputType end end)
+            Bind.Value = Key or Bind.Value
+            Bind.Binding = false
+            TweenService:Create(BindBox, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {
+                BackgroundColor3 = Library.Themes[Library.SelectedTheme].Main
+            }):Play()
+            UpdateLabel()
+            SaveCfg(game.GameId)
+            return
+        end
+
+        -- Trigger
+        local valName = Bind.Value and (type(Bind.Value) == "string" and Bind.Value or Bind.Value.Name)
+        if valName and (i.KeyCode.Name == valName or i.UserInputType.Name == valName) then
+            if Hold then
+                Holding = true
+                OnTriggered(Holding)
+            else
+                OnTriggered()
+            end
+        end
+    end)
+
+    AddConnection(UserInputService.InputEnded, function(i)
+        if not Hold or not Holding then return end
+        local valName = Bind.Value and (type(Bind.Value) == "string" and Bind.Value or Bind.Value.Name)
+        if valName and (i.KeyCode.Name == valName or i.UserInputType.Name == valName) then
+            Holding = false
+            OnTriggered(Holding)
+        end
+    end)
+
+    function Bind:Set(Key)
+        Bind.Binding = false
+        if Key then
+            Bind.Value = Key.Name or Key
+        else
+            Bind.Value = nil
+        end
+        UpdateLabel()
+    end
+
+    if DefaultKey then Bind:Set(DefaultKey) else UpdateLabel() end
+    if Flag then Library.Flags[Flag] = Bind end
+
+    return Bind
+end
+
+-- ============================================================
 
 function Library:MakeWindow(WindowConfig)
     local FirstTab = true
@@ -985,6 +925,9 @@ function Library:MakeWindow(WindowConfig)
         local function GetElements(ItemParent)
             local ElementFunction = {}
 
+            -- ====================================================
+            -- LABEL
+            -- ====================================================
             function ElementFunction:AddLabel(Text)
                 local LabelFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5), {
                     Size=UDim2.new(1,0,0,30), BackgroundTransparency=0.01, Parent=ItemParent
@@ -997,6 +940,9 @@ function Library:MakeWindow(WindowConfig)
                 return LabelFunction
             end
 
+            -- ====================================================
+            -- PARAGRAPH
+            -- ====================================================
             function ElementFunction:AddParagraph(Text, Content)
                 Text = Text or "Text"; Content = Content or "Content"
                 local ParagraphFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5), {
@@ -1016,12 +962,14 @@ function Library:MakeWindow(WindowConfig)
                 return ParagraphFunction
             end
 
-            -- ── BUTTON ────────────────────────────────────────────────
+            -- ====================================================
+            -- BUTTON  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddButton(ButtonConfig)
                 ButtonConfig = ButtonConfig or {}
                 ButtonConfig.Name     = ButtonConfig.Name     or "Button"
                 ButtonConfig.Callback = ButtonConfig.Callback or function() end
-                local KbCfg = ButtonConfig.Keybind
+                ButtonConfig.Keybind  = ButtonConfig.Keybind  or nil   -- { Default=Enum.KeyCode.X, Callback=fn, Hold=false, Flag="", Save=false }
 
                 local Button = {}
                 local Click = SetProps(MakeElement("Button"), {Size=UDim2.new(1,0,1,0)})
@@ -1031,12 +979,15 @@ function Library:MakeWindow(WindowConfig)
                     BackgroundColor3=Color3.fromRGB(60,120,255), BorderSizePixel=0, BackgroundTransparency=0.4
                 }, {Create("UICorner",{CornerRadius=UDim.new(0,2)})})
 
-                local arrowRightOffset = KbCfg and -50 or -28
                 local ButtonArrow = Create("TextLabel", {
-                    Size=UDim2.new(0,20,1,0), Position=UDim2.new(1,arrowRightOffset,0,0), BackgroundTransparency=1,
+                    Size=UDim2.new(0,20,1,0), Position=UDim2.new(1,-28,0,0), BackgroundTransparency=1,
                     Text="›", TextColor3=Color3.fromRGB(100,100,110), TextSize=18, Font=Enum.Font.GothamBold,
                     TextXAlignment=Enum.TextXAlignment.Center, Name="Arrow"
                 })
+
+                -- Pfeil-Position anpassen wenn Keybind vorhanden
+                local arrowOffsetX = ButtonConfig.Keybind and -56 or -28
+                ButtonArrow.Position = UDim2.new(1, arrowOffsetX, 0, 0)
 
                 local ButtonFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5), {
                     Size=UDim2.new(1,0,0,34), Parent=ItemParent, BackgroundTransparency=0.01
@@ -1048,19 +999,20 @@ function Library:MakeWindow(WindowConfig)
                     Click
                 }), "Second")
 
-                local bindObj
-                if KbCfg then
-                    KbCfg.Callback = KbCfg.Callback or ButtonConfig.Callback
-                    bindObj = MakeInlineKeybind(ButtonFrame, KbCfg, 8)
+                -- Keybind anhängen
+                if ButtonConfig.Keybind then
+                    local kbCfg = ButtonConfig.Keybind
+                    if not kbCfg.Callback then kbCfg.Callback = ButtonConfig.Callback end
+                    MakeInlineKeybind(ButtonFrame, nil, kbCfg)
                 end
 
                 AddConnection(Click.MouseEnter, function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {BackgroundColor3=Color3.fromRGB(22,22,26)}):Play()
-                    TweenService:Create(ButtonArrow, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {TextColor3=Color3.fromRGB(60,120,255), Position=UDim2.new(1,arrowRightOffset+4,0,0)}):Play()
+                    TweenService:Create(ButtonArrow, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {TextColor3=Color3.fromRGB(60,120,255), Position=UDim2.new(1,arrowOffsetX+4,0,0)}):Play()
                 end)
                 AddConnection(Click.MouseLeave, function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {BackgroundColor3=Library.Themes[Library.SelectedTheme].Second}):Play()
-                    TweenService:Create(ButtonArrow, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {TextColor3=Color3.fromRGB(100,100,110), Position=UDim2.new(1,arrowRightOffset,0,0)}):Play()
+                    TweenService:Create(ButtonArrow, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {TextColor3=Color3.fromRGB(100,100,110), Position=UDim2.new(1,arrowOffsetX,0,0)}):Play()
                 end)
                 AddConnection(Click.MouseButton1Down, function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.1,Enum.EasingStyle.Quad), {BackgroundColor3=Color3.fromRGB(18,18,22)}):Play()
@@ -1069,14 +1021,15 @@ function Library:MakeWindow(WindowConfig)
                 AddConnection(Click.MouseButton1Up, function()
                     TweenService:Create(ButtonFrame, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {BackgroundColor3=Color3.fromRGB(22,22,26)}):Play()
                     TweenService:Create(ButtonAccentLine, TweenInfo.new(0.2,Enum.EasingStyle.Quint), {Size=UDim2.new(0,2,0,14)}):Play()
-                    task.spawn(function() ButtonConfig.Callback() end)
+                    spawn(function() ButtonConfig.Callback() end)
                 end)
                 function Button:Set(ButtonText) ButtonFrame.Content.Text = ButtonText end
-                Button.Bind = bindObj
                 return Button
             end
 
-            -- ── TOGGLE ────────────────────────────────────────────────
+            -- ====================================================
+            -- TOGGLE  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddToggle(ToggleConfig)
                 ToggleConfig = ToggleConfig or {}
                 ToggleConfig.Name     = ToggleConfig.Name     or "Toggle"
@@ -1085,15 +1038,16 @@ function Library:MakeWindow(WindowConfig)
                 ToggleConfig.Color    = ToggleConfig.Color    or Color3.fromRGB(9,99,195)
                 ToggleConfig.Flag     = ToggleConfig.Flag     or nil
                 ToggleConfig.Save     = ToggleConfig.Save     or false
-                local KbCfg = ToggleConfig.Keybind
+                ToggleConfig.Keybind  = ToggleConfig.Keybind  or nil
 
                 local Toggle = {Value=ToggleConfig.Default, Save=ToggleConfig.Save}
                 local Click = SetProps(MakeElement("Button"), {Size=UDim2.new(1,0,1,0)})
 
-                local trackRightPos = KbCfg and UDim2.new(1,-82,0.5,0) or UDim2.new(1,-46,0.5,0)
+                -- Toggle-Track weiter links wenn Keybind vorhanden
+                local trackOffsetX = ToggleConfig.Keybind and -80 or -46
 
                 local ToggleTrack = Create("Frame", {
-                    Size=UDim2.new(0,36,0,20), Position=trackRightPos, AnchorPoint=Vector2.new(0,0.5),
+                    Size=UDim2.new(0,36,0,20), Position=UDim2.new(1,trackOffsetX,0.5,0), AnchorPoint=Vector2.new(0,0.5),
                     BackgroundColor3=Color3.fromRGB(18,18,22), BorderSizePixel=0, Name="Track"
                 }, {
                     Create("UICorner",{CornerRadius=UDim.new(1,0)}),
@@ -1107,36 +1061,36 @@ function Library:MakeWindow(WindowConfig)
                 local ToggleFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5), {
                     Size=UDim2.new(1,0,0,36), Parent=ItemParent, BackgroundTransparency=0.01
                 }), {
-                    AddThemeObject(SetProps(MakeElement("Label",ToggleConfig.Name,14), {Size=UDim2.new(1,-80,1,0), Position=UDim2.new(0,12,0,0), Font=Enum.Font.FredokaOne, Name="Content"}), "Text"),
+                    AddThemeObject(SetProps(MakeElement("Label",ToggleConfig.Name,14), {Size=UDim2.new(1,-60,1,0), Position=UDim2.new(0,12,0,0), Font=Enum.Font.FredokaOne, Name="Content"}), "Text"),
                     AddThemeObject(MakeElement("Stroke"), "Stroke"),
                     ToggleTrack, Click
                 }), "Second")
 
+                -- Keybind anhängen (toggelt den Toggle)
+                if ToggleConfig.Keybind then
+                    local kbCfg = ToggleConfig.Keybind
+                    if not kbCfg.Callback then
+                        kbCfg.Callback = function()
+                            Toggle:Set(not Toggle.Value)
+                        end
+                    end
+                    MakeInlineKeybind(ToggleFrame, nil, kbCfg)
+                end
+
                 function Toggle:Set(Value)
                     Toggle.Value = Value
-                    -- FIX 12: Guard stroke access
-                    local stroke = ToggleTrack:FindFirstChild("Stroke")
                     if Toggle.Value then
-                        TweenService:Create(ToggleTrack, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {BackgroundColor3=ToggleConfig.Color}):Play()
-                        if stroke then TweenService:Create(stroke, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Color=ToggleConfig.Color, Transparency=0.6}):Play() end
-                        TweenService:Create(ToggleThumb, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Position=UDim2.new(0,19,0.5,0), BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
+                        TweenService:Create(ToggleTrack,        TweenInfo.new(0.25,Enum.EasingStyle.Quint), {BackgroundColor3=ToggleConfig.Color}):Play()
+                        TweenService:Create(ToggleTrack.Stroke, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Color=ToggleConfig.Color, Transparency=0.6}):Play()
+                        TweenService:Create(ToggleThumb,        TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Position=UDim2.new(0,19,0.5,0), BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
                     else
-                        TweenService:Create(ToggleTrack, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {BackgroundColor3=Color3.fromRGB(18,18,22)}):Play()
-                        if stroke then TweenService:Create(stroke, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Color=Color3.fromRGB(40,40,50), Transparency=0}):Play() end
-                        TweenService:Create(ToggleThumb, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Position=UDim2.new(0,3,0.5,0), BackgroundColor3=Color3.fromRGB(120,120,130)}):Play()
+                        TweenService:Create(ToggleTrack,        TweenInfo.new(0.25,Enum.EasingStyle.Quint), {BackgroundColor3=Color3.fromRGB(18,18,22)}):Play()
+                        TweenService:Create(ToggleTrack.Stroke, TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Color=Color3.fromRGB(40,40,50), Transparency=0}):Play()
+                        TweenService:Create(ToggleThumb,        TweenInfo.new(0.25,Enum.EasingStyle.Quint), {Position=UDim2.new(0,3,0.5,0), BackgroundColor3=Color3.fromRGB(120,120,130)}):Play()
                     end
                     ToggleConfig.Callback(Toggle.Value)
                 end
                 Toggle:Set(Toggle.Value)
-
-                local bindObj
-                if KbCfg then
-                    KbCfg.Callback = KbCfg.Callback or function()
-                        Toggle:Set(not Toggle.Value)
-                        SaveCfg(game.GameId)
-                    end
-                    bindObj = MakeInlineKeybind(ToggleFrame, KbCfg, 8)
-                end
 
                 AddConnection(Click.MouseEnter,     function() TweenService:Create(ToggleFrame,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{BackgroundColor3=Color3.fromRGB(22,22,26)}):Play() end)
                 AddConnection(Click.MouseLeave,     function() TweenService:Create(ToggleFrame,TweenInfo.new(0.2,Enum.EasingStyle.Quint),{BackgroundColor3=Library.Themes[Library.SelectedTheme].Second}):Play() end)
@@ -1148,11 +1102,12 @@ function Library:MakeWindow(WindowConfig)
                     TweenService:Create(ToggleThumb,TweenInfo.new(0.1,Enum.EasingStyle.Quad),{Size=UDim2.new(0,17,0,14)}):Play()
                 end)
                 if ToggleConfig.Flag then Library.Flags[ToggleConfig.Flag] = Toggle end
-                Toggle.Bind = bindObj
                 return Toggle
             end
 
-            -- ── SLIDER ────────────────────────────────────────────────
+            -- ====================================================
+            -- SLIDER  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddSlider(SliderConfig)
                 SliderConfig = SliderConfig or {}
                 SliderConfig.Name      = SliderConfig.Name      or "Slider"
@@ -1165,20 +1120,18 @@ function Library:MakeWindow(WindowConfig)
                 SliderConfig.Color     = SliderConfig.Color     or Color3.fromRGB(120,125,130)
                 SliderConfig.Flag      = SliderConfig.Flag      or nil
                 SliderConfig.Save      = SliderConfig.Save      or false
-                local KbCfg = SliderConfig.Keybind
+                SliderConfig.Keybind   = SliderConfig.Keybind   or nil
 
                 local Slider = {Value=SliderConfig.Default, Save=SliderConfig.Save}
                 local Dragging = false
 
                 local SliderDrag = SetProps(MakeElement("RoundFrame",SliderConfig.Color,0,5), {Size=UDim2.new(0,0,1,0), ZIndex=2})
-
-                local barRightPad = KbCfg and 60 or 24
                 local SliderBar = SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(18,18,22),0,5), {
-                    Size=UDim2.new(1,-barRightPad,0,16), Position=UDim2.new(0,12,0,38), ClipsDescendants=true
+                    Size=UDim2.new(1,-24,0,16), Position=UDim2.new(0,12,0,38), ClipsDescendants=true
                 }), {SetProps(MakeElement("Stroke"),{Color=SliderConfig.Color,Transparency=0.55}), SliderDrag})
 
                 local SliderValueLabel = AddThemeObject(SetProps(MakeElement("Label","value",13), {
-                    Size=UDim2.new(1,-barRightPad,0,14), Position=UDim2.new(0,12,0,20), Font=Enum.Font.FredokaOne,
+                    Size=UDim2.new(1,-24,0,14), Position=UDim2.new(0,12,0,20), Font=Enum.Font.FredokaOne,
                     Name="Value", TextTransparency=0.35, TextXAlignment=Enum.TextXAlignment.Right
                 }), "TextDark")
 
@@ -1189,9 +1142,11 @@ function Library:MakeWindow(WindowConfig)
                     SliderValueLabel, AddThemeObject(MakeElement("Stroke"),"Stroke"), SliderBar
                 }), "Second")
 
-                local bindObj
-                if KbCfg then
-                    bindObj = MakeInlineKeybind(SliderFrame, KbCfg, 8)
+                -- Keybind anhängen (oben rechts im Slider-Frame)
+                if SliderConfig.Keybind then
+                    MakeInlineKeybind(SliderFrame, nil, SliderConfig.Keybind)
+                    -- Value-Label etwas nach links schieben damit kein Overlap
+                    SliderValueLabel.Size = UDim2.new(1,-62,0,14)
                 end
 
                 SliderBar.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then Dragging=true end end)
@@ -1210,11 +1165,12 @@ function Library:MakeWindow(WindowConfig)
                 end
                 Slider:Set(Slider.Value)
                 if SliderConfig.Flag then Library.Flags[SliderConfig.Flag] = Slider end
-                Slider.Bind = bindObj
                 return Slider
             end
 
-            -- ── DROPDOWN ──────────────────────────────────────────────
+            -- ====================================================
+            -- DROPDOWN  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddDropdown(DropdownConfig)
                 DropdownConfig = DropdownConfig or {}
                 DropdownConfig.Name     = DropdownConfig.Name     or "Dropdown"
@@ -1223,7 +1179,7 @@ function Library:MakeWindow(WindowConfig)
                 DropdownConfig.Callback = DropdownConfig.Callback or function() end
                 DropdownConfig.Flag     = DropdownConfig.Flag     or nil
                 DropdownConfig.Save     = DropdownConfig.Save     or false
-                local KbCfg = DropdownConfig.Keybind
+                DropdownConfig.Keybind  = DropdownConfig.Keybind  or nil
 
                 local Dropdown = {Value=DropdownConfig.Default, Options=DropdownConfig.Options, Buttons={}, Toggled=false, Type="Dropdown", Save=DropdownConfig.Save}
                 local MaxElements = 5
@@ -1241,27 +1197,20 @@ function Library:MakeWindow(WindowConfig)
                     DropdownContainer,
                     SetProps(SetChildren(MakeElement("TFrame"),{
                         AddThemeObject(SetProps(MakeElement("Label",DropdownConfig.Name,15),{Size=UDim2.new(1,-12,1,0),Position=UDim2.new(0,12,0,0),Font=Enum.Font.FredokaOne,Name="Content"}),"Text"),
-                        AddThemeObject(SetProps(MakeElement("Image","rbxassetid://7072706796"),{Size=UDim2.new(0,20,0,20),AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(1,(KbCfg and -66 or -30),0.5,0),Name="Ico"}),"TextDark"),
-                        AddThemeObject(SetProps(MakeElement("Label","Selected",13),{Size=UDim2.new(1,(KbCfg and -76 or -40),1,0),Font=Enum.Font.FredokaOne,Name="Selected",TextXAlignment=Enum.TextXAlignment.Right}),"TextDark"),
+                        AddThemeObject(SetProps(MakeElement("Image","rbxassetid://7072706796"),{Size=UDim2.new(0,20,0,20),AnchorPoint=Vector2.new(0,0.5),Position=UDim2.new(1,-30,0.5,0),Name="Ico"}),"TextDark"),
+                        AddThemeObject(SetProps(MakeElement("Label","Selected",13),{Size=UDim2.new(1,-40,1,0),Font=Enum.Font.FredokaOne,Name="Selected",TextXAlignment=Enum.TextXAlignment.Right}),"TextDark"),
                         AddThemeObject(SetProps(MakeElement("Frame"),{Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),Name="Line",Visible=false}),"Stroke"),
                         Click
                     }),{Size=UDim2.new(1,0,0,38),ClipsDescendants=true,Name="F"}),
                     AddThemeObject(MakeElement("Stroke"),"Stroke"), MakeElement("Corner")
                 }), "Second")
 
-                local bindObj
-                if KbCfg then
-                    KbCfg.Callback = KbCfg.Callback or function()
-                        Dropdown.Toggled = not Dropdown.Toggled
-                        DropdownFrame.F.Line.Visible = Dropdown.Toggled
-                        TweenService:Create(DropdownFrame.F.Ico,TweenInfo.new(.15,Enum.EasingStyle.Quad),{Rotation=Dropdown.Toggled and 180 or 0}):Play()
-                        if #Dropdown.Options>MaxElements then
-                            TweenService:Create(DropdownFrame,TweenInfo.new(.15,Enum.EasingStyle.Quad),{Size=Dropdown.Toggled and UDim2.new(1,0,0,38+(MaxElements*28)) or UDim2.new(1,0,0,38)}):Play()
-                        else
-                            TweenService:Create(DropdownFrame,TweenInfo.new(.15,Enum.EasingStyle.Quad),{Size=Dropdown.Toggled and UDim2.new(1,0,0,DropdownList.AbsoluteContentSize.Y+38) or UDim2.new(1,0,0,38)}):Play()
-                        end
-                    end
-                    bindObj = MakeInlineKeybind(DropdownFrame, KbCfg, 8)
+                -- Keybind anhängen
+                if DropdownConfig.Keybind then
+                    MakeInlineKeybind(DropdownFrame, nil, DropdownConfig.Keybind)
+                    -- Ico und Selected etwas nach links damit kein Overlap mit BindBox
+                    DropdownFrame.F.Ico.Position      = UDim2.new(1,-64,0.5,0)
+                    DropdownFrame.F.Selected.Size     = UDim2.new(1,-74,1,0)
                 end
 
                 AddConnection(DropdownList:GetPropertyChangedSignal("AbsoluteContentSize"),function()
@@ -1307,11 +1256,12 @@ function Library:MakeWindow(WindowConfig)
                 end)
                 Dropdown:Refresh(Dropdown.Options,false); Dropdown:Set(Dropdown.Value)
                 if DropdownConfig.Flag then Library.Flags[DropdownConfig.Flag]=Dropdown end
-                Dropdown.Bind = bindObj
                 return Dropdown
             end
 
-            -- ── BIND (standalone) ─────────────────────────────────────
+            -- ====================================================
+            -- BIND  (unverändertes Original)
+            -- ====================================================
             function ElementFunction:AddBind(BindConfig)
                 BindConfig.Name     = BindConfig.Name     or "Bind"
                 BindConfig.Default  = BindConfig.Default  or Enum.KeyCode.Unknown
@@ -1348,10 +1298,7 @@ function Library:MakeWindow(WindowConfig)
                 end)
                 AddConnection(UserInputService.InputBegan,function(i)
                     if UserInputService:GetFocusedTextBox() then return end
-                    local kn = ""; local mn = ""
-                    pcall(function() kn = i.KeyCode.Name end)
-                    pcall(function() mn = i.UserInputType.Name end)
-                    if (kn==Bind.Value or mn==Bind.Value) and not Bind.Binding then
+                    if (i.KeyCode.Name==Bind.Value or i.UserInputType.Name==Bind.Value) and not Bind.Binding then
                         if BindConfig.Hold then Holding=true; BindConfig.Callback(Holding) else BindConfig.Callback() end
                     elseif Bind.Binding then
                         local Key; pcall(function() if not CheckKey(BlacklistedKeys,i.KeyCode) then Key=i.KeyCode end end)
@@ -1360,35 +1307,26 @@ function Library:MakeWindow(WindowConfig)
                     end
                 end)
                 AddConnection(UserInputService.InputEnded,function(i)
-                    local kn = ""; local mn = ""
-                    pcall(function() kn = i.KeyCode.Name end)
-                    pcall(function() mn = i.UserInputType.Name end)
-                    if kn==Bind.Value or mn==Bind.Value then
+                    if i.KeyCode.Name==Bind.Value or i.UserInputType.Name==Bind.Value then
                         if BindConfig.Hold and Holding then Holding=false; BindConfig.Callback(Holding) end
                     end
                 end)
-                -- FIX 13: Safe .Name access on Key
-                function Bind:Set(Key)
-                    Bind.Binding=false
-                    Bind.Value=Key or Bind.Value
-                    if type(Bind.Value) ~= "string" then
-                        Bind.Value = Bind.Value and Bind.Value.Name or "?"
-                    end
-                    BindBox.Value.Text=Bind.Value
-                end
+                function Bind:Set(Key) Bind.Binding=false; Bind.Value=Key or Bind.Value; Bind.Value=Bind.Value.Name or Bind.Value; BindBox.Value.Text=Bind.Value end
                 Bind:Set(BindConfig.Default)
                 if BindConfig.Flag then Library.Flags[BindConfig.Flag]=Bind end
                 return Bind
             end
 
-            -- ── TEXTBOX ───────────────────────────────────────────────
+            -- ====================================================
+            -- TEXTBOX  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddTextbox(TextboxConfig)
                 TextboxConfig = TextboxConfig or {}
                 TextboxConfig.Name          = TextboxConfig.Name          or "Textbox"
                 TextboxConfig.Default       = TextboxConfig.Default       or ""
                 TextboxConfig.TextDisappear = TextboxConfig.TextDisappear or false
                 TextboxConfig.Callback      = TextboxConfig.Callback      or function() end
-                local KbCfg = TextboxConfig.Keybind
+                TextboxConfig.Keybind       = TextboxConfig.Keybind       or nil
 
                 local Click = SetProps(MakeElement("Button"),{Size=UDim2.new(1,0,1,0)})
                 local TextboxActual = AddThemeObject(Create("TextBox",{
@@ -1397,8 +1335,11 @@ function Library:MakeWindow(WindowConfig)
                     Font=Enum.Font.GothamSemibold, TextXAlignment=Enum.TextXAlignment.Center, TextSize=14, ClearTextOnFocus=false
                 }), "Text")
                 local TextContainer = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,4),{
-                    Size=UDim2.new(0,24,0,24), Position=UDim2.new(1,(KbCfg and -48 or -12),0.5,0), AnchorPoint=Vector2.new(1,0.5)
+                    Size=UDim2.new(0,24,0,24),
+                    Position = TextboxConfig.Keybind and UDim2.new(1,-44,0.5,0) or UDim2.new(1,-12,0.5,0),
+                    AnchorPoint=Vector2.new(1,0.5)
                 }), {AddThemeObject(MakeElement("Stroke"),"Stroke"), TextboxActual}), "Main")
+
                 local TextboxFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5),{
                     Size=UDim2.new(1,0,0,38), Parent=ItemParent
                 }), {
@@ -1406,23 +1347,23 @@ function Library:MakeWindow(WindowConfig)
                     AddThemeObject(MakeElement("Stroke"),"Stroke"), TextContainer, Click
                 }), "Second")
 
-                local bindObj
-                if KbCfg then
-                    KbCfg.Callback = KbCfg.Callback or function()
-                        TextboxActual:CaptureFocus()
-                    end
-                    bindObj = MakeInlineKeybind(TextboxFrame, KbCfg, 8)
+                -- Keybind anhängen
+                if TextboxConfig.Keybind then
+                    MakeInlineKeybind(TextboxFrame, nil, TextboxConfig.Keybind)
                 end
 
                 AddConnection(TextboxActual:GetPropertyChangedSignal("Text"),function()
-                    TweenService:Create(TextContainer,TweenInfo.new(0.45,Enum.EasingStyle.Quint),{Size=UDim2.new(0,TextboxActual.TextBounds.X+16,0,24)}):Play()
+                    local tw = math.max(24, TextboxActual.TextBounds.X + 16)
+                    TweenService:Create(TextContainer,TweenInfo.new(0.45,Enum.EasingStyle.Quint),{Size=UDim2.new(0,tw,0,24)}):Play()
                 end)
                 AddConnection(TextboxActual.FocusLost,function() TextboxConfig.Callback(TextboxActual.Text); if TextboxConfig.TextDisappear then TextboxActual.Text="" end end)
                 TextboxActual.Text=TextboxConfig.Default
                 AddConnection(Click.MouseButton1Up,function() TextboxActual:CaptureFocus() end)
             end
 
-            -- ── COLORPICKER ───────────────────────────────────────────
+            -- ====================================================
+            -- COLORPICKER  (+ optionaler Keybind)
+            -- ====================================================
             function ElementFunction:AddColorpicker(ColorpickerConfig)
                 ColorpickerConfig = ColorpickerConfig or {}
                 ColorpickerConfig.Name     = ColorpickerConfig.Name     or "Colorpicker"
@@ -1430,7 +1371,7 @@ function Library:MakeWindow(WindowConfig)
                 ColorpickerConfig.Callback = ColorpickerConfig.Callback or function() end
                 ColorpickerConfig.Flag     = ColorpickerConfig.Flag     or nil
                 ColorpickerConfig.Save     = ColorpickerConfig.Save     or false
-                local KbCfg = ColorpickerConfig.Keybind
+                ColorpickerConfig.Keybind  = ColorpickerConfig.Keybind  or nil
 
                 local ColorH, ColorS, ColorV = 1, 1, 1
                 local Colorpicker = {Value=ColorpickerConfig.Default, Toggled=false, Type="Colorpicker", Save=ColorpickerConfig.Save}
@@ -1445,8 +1386,15 @@ function Library:MakeWindow(WindowConfig)
                     Hue, Color, Create("UIPadding",{PaddingLeft=UDim.new(0,35),PaddingRight=UDim.new(0,35),PaddingBottom=UDim.new(0,10),PaddingTop=UDim.new(0,17)})
                 })
                 local Click = SetProps(MakeElement("Button"),{Size=UDim2.new(1,0,1,0)})
-                local cpBoxRight = KbCfg and -48 or -12
-                local ColorpickerBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,4),{Size=UDim2.new(0,24,0,24),Position=UDim2.new(1,cpBoxRight,0.5,0),AnchorPoint=Vector2.new(1,0.5)}),{AddThemeObject(MakeElement("Stroke"),"Stroke")}),"Main")
+
+                -- ColorpickerBox Position anpassen wenn Keybind
+                local cpBoxOffsetX = ColorpickerConfig.Keybind and -44 or -12
+                local ColorpickerBox = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,4),{
+                    Size=UDim2.new(0,24,0,24),
+                    Position=UDim2.new(1,cpBoxOffsetX,0.5,0),
+                    AnchorPoint=Vector2.new(1,0.5)
+                }),{AddThemeObject(MakeElement("Stroke"),"Stroke")}),"Main")
+
                 local ColorpickerFrame = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame",Color3.fromRGB(255,255,255),0,5),{Size=UDim2.new(1,0,0,38),Parent=ItemParent}),{
                     SetProps(SetChildren(MakeElement("TFrame"),{
                         AddThemeObject(SetProps(MakeElement("Label",ColorpickerConfig.Name,15),{Size=UDim2.new(1,-12,1,0),Position=UDim2.new(0,12,0,0),Font=Enum.Font.FredokaOne,Name="Content"}),"Text"),
@@ -1456,14 +1404,9 @@ function Library:MakeWindow(WindowConfig)
                     ColorpickerContainer, AddThemeObject(MakeElement("Stroke"),"Stroke")
                 }),"Second")
 
-                local bindObj
-                if KbCfg then
-                    KbCfg.Callback = KbCfg.Callback or function()
-                        Colorpicker.Toggled = not Colorpicker.Toggled
-                        TweenService:Create(ColorpickerFrame,TweenInfo.new(.15,Enum.EasingStyle.Quad),{Size=Colorpicker.Toggled and UDim2.new(1,0,0,148) or UDim2.new(1,0,0,38)}):Play()
-                        Color.Visible=Colorpicker.Toggled; Hue.Visible=Colorpicker.Toggled; ColorpickerFrame.F.Line.Visible=Colorpicker.Toggled
-                    end
-                    bindObj = MakeInlineKeybind(ColorpickerFrame, KbCfg, 8)
+                -- Keybind anhängen
+                if ColorpickerConfig.Keybind then
+                    MakeInlineKeybind(ColorpickerFrame, nil, ColorpickerConfig.Keybind)
                 end
 
                 AddConnection(Click.MouseButton1Click,function()
@@ -1508,7 +1451,6 @@ function Library:MakeWindow(WindowConfig)
                 function Colorpicker:Set(Value) Colorpicker.Value=Value; ColorpickerBox.BackgroundColor3=Colorpicker.Value; ColorpickerConfig.Callback(Colorpicker.Value) end
                 Colorpicker:Set(Colorpicker.Value)
                 if ColorpickerConfig.Flag then Library.Flags[ColorpickerConfig.Flag]=Colorpicker end
-                Colorpicker.Bind = bindObj
                 return Colorpicker
             end
 
@@ -1537,10 +1479,8 @@ function Library:MakeWindow(WindowConfig)
 
         if TabConfig.PremiumOnly then
             for i,_ in next, ElementFunction do ElementFunction[i]=function() end end
-            local ll = ItemContainer:FindFirstChild("UIListLayout")
-            local lp = ItemContainer:FindFirstChild("UIPadding")
-            if ll then ll:Destroy() end
-            if lp then lp:Destroy() end
+            ItemContainer:FindFirstChild("UIListLayout"):Destroy()
+            ItemContainer:FindFirstChild("UIPadding"):Destroy()
             SetChildren(SetProps(MakeElement("TFrame"),{Size=UDim2.new(1,0,1,0),Parent=ItemContainer}),{
                 AddThemeObject(SetProps(MakeElement("Label","Unauthorised Access",14),{Size=UDim2.new(1,-38,0,14),Position=UDim2.new(0,38,0,18),TextTransparency=0.4}),"Text"),
                 AddThemeObject(SetProps(MakeElement("Label","Premium Features",14),{Size=UDim2.new(1,-150,0,14),Position=UDim2.new(0,150,0,112),Font=Enum.Font.FredokaOne}),"Text"),
@@ -1562,9 +1502,7 @@ local Configs_HUB = {
 }
 local function CreateNotifElement(instance,parent,props)
     local new=Instance.new(instance,parent)
-    if props then
-        for p,v in pairs(props) do new[p]=v end
-    end
+    if props then table.foreach(props,function(p,v) new[p]=v end) end
     return new
 end
 local function CreateTween(instance,prop,value,time,tweenWait)
@@ -1573,7 +1511,7 @@ local function CreateTween(instance,prop,value,time,tweenWait)
 end
 local function CornerNotif(parent,props)
     local new=CreateNotifElement("UICorner",parent); new.CornerRadius=Configs_HUB.Corner_Radius
-    if props then for p,v in pairs(props) do new[p]=v end end
+    if props then table.foreach(props,function(p,v) new[p]=v end) end
     return new
 end
 local ScreenGui2=CreateNotifElement("ScreenGui",Container)
@@ -1596,16 +1534,16 @@ function Library:MakeNotifi(Configs)
     TextButton.MouseButton1Click:Connect(function()
         CreateTween(Frame2,"Position",UDim2.new(0,-20,0,0),0.1,true)
         CreateTween(Frame2,"Position",UDim2.new(0,Menu_Notifi.Size.X.Offset,0,0),0.5,true)
-        if Frame1 and Frame1.Parent then Frame1:Destroy() end
+        Frame1:Destroy()
     end)
     task.spawn(function()
         CreateTween(Frame2,"Position",UDim2.new(0,-20,0,0),0.5,true)
         CreateTween(Frame2,"Position",UDim2.new(),0.1,true)
         task.wait(timewait)
-        if Frame2 and Frame2.Parent then
+        if Frame2 then
             CreateTween(Frame2,"Position",UDim2.new(0,-20,0,0),0.1,true)
             CreateTween(Frame2,"Position",UDim2.new(0,Menu_Notifi.Size.X.Offset,0,0),0.5,true)
-            if Frame1 and Frame1.Parent then Frame1:Destroy() end
+            Frame1:Destroy()
         end
     end)
 end
