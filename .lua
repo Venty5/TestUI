@@ -1,5 +1,3 @@
---lol
-
 local Zenith = {}
 Zenith.Version = "1.3.0h"
 Zenith.Flags = {}
@@ -5084,39 +5082,28 @@ function Zenith:Window(config)
 			nameLabel.Position = UDim2.new(0, 12, 0, 0)
 			nameLabel.Parent = frame
 
-local checkboxFrame = Instance.new("Frame")
-			checkboxFrame.BackgroundColor3 = theme.Divider
+			local checkboxFrame = Instance.new("Frame")
+			checkboxFrame.BackgroundColor3 = resolvedColor
 			checkboxFrame.BorderSizePixel = 0
-			checkboxFrame.Size = UDim2.new(0, 40, 0, 22)
-			checkboxFrame.Position = UDim2.new(1, -52, 0.5, 0)
-			checkboxFrame.AnchorPoint = Vector2.new(0, 0.5)
+			checkboxFrame.Size = UDim2.new(0, 24, 0, 24)
+			checkboxFrame.Position = UDim2.new(1, -24, 0.5, 0)
+			checkboxFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 			checkboxFrame.Parent = frame
-			addCorner(checkboxFrame, 1, 0)
+			addCorner(checkboxFrame, 0, 4)
 
 			local checkboxStroke = Instance.new("UIStroke")
-			checkboxStroke.Color = theme.Stroke
-			checkboxStroke.Transparency = 0
+			checkboxStroke.Color = resolvedColor
+			checkboxStroke.Transparency = 0.5
 			checkboxStroke.Parent = checkboxFrame
 
-			local checkIcon = Instance.new("Frame")
-			checkIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			checkIcon.BorderSizePixel = 0
-			checkIcon.AnchorPoint = Vector2.new(0, 0.5)
-			checkIcon.Position = UDim2.new(0, 3, 0.5, 0)
-			checkIcon.Size = UDim2.new(0, 16, 0, 16)
+			local checkIcon = Instance.new("ImageLabel")
+			checkIcon.Image = "rbxassetid://3944680095"
+			checkIcon.BackgroundTransparency = 1
+			checkIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+			checkIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+			checkIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+			checkIcon.Size = UDim2.new(0, 20, 0, 20)
 			checkIcon.Parent = checkboxFrame
-			addCorner(checkIcon, 1, 0)
-
-			function toggleObj:Set(value)
-				toggleObj.Value = value
-				tweenObj(checkboxFrame, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-					{BackgroundColor3 = value and resolvedColor or theme.Divider})
-				tweenObj(checkboxStroke, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-					{Color = value and resolvedColor or theme.Stroke})
-				tweenObj(checkIcon, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-					{Position = value and UDim2.new(0, 21, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)})
-				pcall(resolvedCb, value)
-			end
 
 			local confirmRow = nil
 			local confirmPending = false
