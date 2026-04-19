@@ -1,3 +1,5 @@
+--lol
+
 local Zenith = {}
 Zenith.Version = "1.3.0h"
 Zenith.Flags = {}
@@ -48,13 +50,13 @@ Zenith.Themes = Themes
 
 do
 	local defaultColors = {
-		Main = Color3.fromRGB(25, 25, 25),
-		Second = Color3.fromRGB(32, 32, 32),
-		Stroke = Color3.fromRGB(60, 60, 60),
-		Divider = Color3.fromRGB(60, 60, 60),
+		Main = Color3.fromRGB(5, 5, 5),
+		Second = Color3.fromRGB(12, 12, 12),
+		Stroke = Color3.fromRGB(40, 40, 40),
+		Divider = Color3.fromRGB(40, 40, 40),
 		Text = Color3.fromRGB(240, 240, 240),
 		TextDark = Color3.fromRGB(150, 150, 150),
-		Accent = Color3.fromRGB(0, 170, 255),
+		Accent = Color3.fromRGB(180, 160, 255),
 	}
 
 	function Themes:Add(name, cfg)
@@ -68,13 +70,13 @@ do
 	end
 
 	Themes:Add("Dark", {
-		Main = Color3.fromRGB(25, 25, 25),
-		Second = Color3.fromRGB(32, 32, 32),
-		Stroke = Color3.fromRGB(60, 60, 60),
-		Divider = Color3.fromRGB(60, 60, 60),
+		Main = Color3.fromRGB(5, 5, 5),
+		Second = Color3.fromRGB(12, 12, 12),
+		Stroke = Color3.fromRGB(40, 40, 40),
+		Divider = Color3.fromRGB(40, 40, 40),
 		Text = Color3.fromRGB(240, 240, 240),
 		TextDark = Color3.fromRGB(150, 150, 150),
-		Accent = Color3.fromRGB(0, 170, 255),
+		Accent = Color3.fromRGB(180, 160, 255),
 	})
 
 	Themes:Add("Light", {
@@ -84,7 +86,7 @@ do
 		Divider = Color3.fromRGB(200, 200, 210),
 		Text = Color3.fromRGB(30, 30, 35),
 		TextDark = Color3.fromRGB(100, 100, 115),
-		Accent = Color3.fromRGB(0, 120, 255),
+		Accent = Color3.fromRGB(160, 130, 255),
 	})
 
 	Themes:Add("Midnight", {
@@ -146,7 +148,7 @@ end
 
 local function addStroke(parent, color, thickness)
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = color or Color3.fromRGB(60, 60, 60)
+	stroke.Color = color or Color3.fromRGB(180, 160, 255)
 	stroke.Thickness = thickness or 1
 	stroke.Parent = parent
 	return stroke
@@ -390,6 +392,7 @@ Animations.Blob = function(mainWindow, screenGui, theme, startupText, startupIco
 
 	local morphFrame = Instance.new("Frame")
 	morphFrame.BackgroundColor3 = theme.Main
+	morphFrame.BackgroundTransparency = 0.3
 	morphFrame.BorderSizePixel = 0
 	morphFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 	morphFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -457,7 +460,7 @@ Animations.Fade = function(mainWindow)
 	mainWindow.Visible = true
 	TweenService:Create(mainWindow,
 		TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{BackgroundTransparency = 0}):Play()
+		{BackgroundTransparency = 0.3}):Play()
 end
 
 Animations.Typewriter = function(mainWindow, screenGui, theme, startupText, startupIcon)
@@ -465,7 +468,7 @@ Animations.Typewriter = function(mainWindow, screenGui, theme, startupText, star
 
 	local overlayFrame = Instance.new("Frame")
 	overlayFrame.BackgroundColor3 = theme.Main
-	overlayFrame.BackgroundTransparency = 0
+	overlayFrame.BackgroundTransparency = 0.3
 	overlayFrame.BorderSizePixel = 0
 	overlayFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 	overlayFrame.Size = UDim2.new(0, 615, 0, 344)
@@ -695,7 +698,7 @@ function Zenith:Notify(configOrText, durationArg)
 		content = ""
 		image = "rbxassetid://4384403532"
 		duration = durationArg or 5
-		barColor = Color3.fromRGB(0, 170, 255)
+		barColor = Color3.fromRGB(180, 160, 255)
 	end
 
 	local onClick = type(configOrText) == "table" and configOrText.OnClick or nil
@@ -737,6 +740,7 @@ function Zenith:Notify(configOrText, durationArg)
 		local notifTheme = getNotifTheme()
 		local card = Instance.new("Frame")
 		card.BackgroundColor3 = notifTheme.Second
+		card.BackgroundTransparency = 0.2
 		card.BorderSizePixel = 0
 		card.Size = UDim2.new(0, notifWidth, 0, 0)
 		card.AutomaticSize = Enum.AutomaticSize.Y
@@ -911,7 +915,7 @@ function Zenith:CNotify(config)
 	local additional = config.Additional or ""
 	local image = config.Image or "rbxassetid://4384403532"
 	local duration = config.Time or 5
-	local barColor = config.DurationColor or Color3.fromRGB(0, 255, 170)
+	local barColor = config.DurationColor or Color3.fromRGB(180, 160, 255)
 	local soundId = config.SoundId
 	local onClick = config.OnClick
 
@@ -1130,6 +1134,7 @@ function Zenith:CNotify(config)
 			
 			local modalcard = Instance.new("Frame")
 			modalcard.BackgroundColor3 = Color3.fromRGB(28, 28, 32)
+			modalcard.BackgroundTransparency = 0.2
 			modalcard.BorderSizePixel = 0
 			modalcard.AnchorPoint = Vector2.new(0.5, 0.5)
 			modalcard.Size = UDim2.new(0, 0, 0, 0)
@@ -1299,6 +1304,7 @@ function Zenith:Modal(config)
 
 	local modalcard = Instance.new("Frame")
 	modalcard.BackgroundColor3 = notifTheme.Main
+	modalcard.BackgroundTransparency = 0.2
 	modalcard.BorderSizePixel = 0
 	modalcard.AnchorPoint = Vector2.new(0.5, 0.5)
 	modalcard.Size = UDim2.new(0, 0, 0, 0)
@@ -1521,7 +1527,7 @@ function Zenith:Topbar(theme)
 	local topbarPanel = Instance.new("Frame")
 	topbarPanel.Name = "TopbarPanel"
 	topbarPanel.BackgroundColor3 = panelBgColor
-	topbarPanel.BackgroundTransparency = 0.06
+	topbarPanel.BackgroundTransparency = 0.2
 	topbarPanel.BorderSizePixel = 0
 	topbarPanel.AnchorPoint = Vector2.new(0.5, 0)
 	topbarPanel.Size = UDim2.new(0, panelWidth, 0, collapsedHeight)
@@ -2276,7 +2282,7 @@ function Zenith:Radial(theme)
 
 		local card = Instance.new("Frame")
 		card.BackgroundColor3 = secondColor
-		card.BackgroundTransparency = 0.12
+		card.BackgroundTransparency = 0.3
 		card.BorderSizePixel = 0
 		card.AnchorPoint = Vector2.new(0.5, 0.5)
 		card.Size = UDim2.new(0, cardWidth, 0, cardHeight)
@@ -2390,7 +2396,7 @@ function Zenith:Radial(theme)
 					if not isOpen or generation ~= myGen then return end
 					tweenObj(segment.frame, 0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {
 						Position = UDim2.new(0.5, fp.x, 0.5, fp.y),
-						BackgroundTransparency = 0.12,
+						BackgroundTransparency = 0.3,
 						Size = UDim2.new(0, cardWidth, 0, cardHeight),
 					})
 				end)
@@ -2407,7 +2413,7 @@ function Zenith:Radial(theme)
 					if not isOpen or generation ~= myGen then return end
 					tweenObj(segment.frame, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
 						Position = UDim2.new(0.5, fp.x, 0.5, fp.y),
-						BackgroundTransparency = 0.12,
+						BackgroundTransparency = 0.3,
 						Size = UDim2.new(0, cardWidth, 0, cardHeight),
 					})
 				end)
@@ -2422,7 +2428,7 @@ function Zenith:Radial(theme)
 				segment.frame.Size = UDim2.new(0, 6, 0, 6)
 				tweenObj(segment.frame, 0.6, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out, {
 					Position = UDim2.new(0.5, fp.x, 0.5, fp.y),
-					BackgroundTransparency = 0.12,
+					BackgroundTransparency = 0.3,
 					Size = UDim2.new(0, cardWidth, 0, cardHeight),
 				})
 			end
@@ -2438,7 +2444,7 @@ function Zenith:Radial(theme)
 					if not isOpen or generation ~= myGen then return end
 					tweenObj(segment.frame, 0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out, {
 						Position = UDim2.new(0.5, fp.x, 0.5, fp.y),
-						BackgroundTransparency = 0.12,
+						BackgroundTransparency = 0.3,
 					})
 				end)
 			end
@@ -2453,7 +2459,7 @@ function Zenith:Radial(theme)
 				task.delay((segIndex - 1) * 0.045, function()
 					if not isOpen or generation ~= myGen then return end
 					tweenObj(segment.frame, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {
-						BackgroundTransparency = 0.12,
+						BackgroundTransparency = 0.3,
 						Size = UDim2.new(0, cardWidth, 0, cardHeight),
 					})
 				end)
@@ -2480,7 +2486,7 @@ function Zenith:Radial(theme)
 				local fp = segmentFinalPositions[segIndex]
 				segment.frame.Position = UDim2.new(0.5, fp.x, 0.5, fp.y)
 				segment.frame.Size = UDim2.new(0, cardWidth, 0, cardHeight)
-				segment.frame.BackgroundTransparency = 0.12
+				segment.frame.BackgroundTransparency = 0.3
 				segment.frame.BackgroundColor3 = secondColor
 				if segment.icon then segment.icon.ImageColor3 = textDarkColor end
 				if segment.label then
@@ -2637,7 +2643,7 @@ function Zenith:KeybindList(theme)
 	local keybindPanel = Instance.new("Frame")
 	keybindPanel.Name = "KeybindPanel"
 	keybindPanel.BackgroundColor3 = mainColor
-	keybindPanel.BackgroundTransparency = 0.2
+	keybindPanel.BackgroundTransparency = 0.45
 	keybindPanel.BorderSizePixel = 0
 	keybindPanel.AnchorPoint = Vector2.new(0, 1)
 	keybindPanel.Position = UDim2.new(0, 18, 1, -18)
@@ -2886,6 +2892,7 @@ function Zenith:Window(config)
 
 		local keyFrame = Instance.new("Frame")
 		keyFrame.BackgroundColor3 = theme.Main
+		keyFrame.BackgroundTransparency = 0.3
 		keyFrame.BorderSizePixel = 0
 		keyFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 		keyFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -3059,6 +3066,7 @@ function Zenith:Window(config)
 	local mainWindow = Instance.new("Frame")
 	mainWindow.Name = "MainWindow"
 	mainWindow.BackgroundColor3 = theme.Main
+	mainWindow.BackgroundTransparency = 0.3
 	mainWindow.BorderSizePixel = 0
 	mainWindow.Position = UDim2.new(0.5, -307, 0.5, -172)
 	mainWindow.Size = UDim2.new(0, 615, 0, 344)
@@ -3657,7 +3665,7 @@ function Zenith:Window(config)
 
 		
 		if showDisplayName then
-			local displayNameLabel = Instance.new("TextLabel")
+			displayNameLabel = Instance.new("TextLabel")
 			displayNameLabel.Name = "DisplayName"
 			displayNameLabel.Text = LocalPlayer.DisplayName
 			displayNameLabel.TextColor3 = theme.Text
@@ -3673,7 +3681,7 @@ function Zenith:Window(config)
 		end
 
 		if showUsername then
-			local usernameLabel = Instance.new("TextLabel")
+			usernameLabel = Instance.new("TextLabel")
 			usernameLabel.Name = "Username"
 			usernameLabel.Text = "@" .. LocalPlayer.Name
 			usernameLabel.TextColor3 = theme.TextDark
@@ -3687,6 +3695,20 @@ function Zenith:Window(config)
 			usernameLabel.Parent = userSectionContainer
 			windowObject._UsernameLabel = usernameLabel
 		end
+
+		avatarSubLabel = Instance.new("TextLabel")
+		avatarSubLabel.Name = "DiscordLabel"
+		avatarSubLabel.Text = "discord.gg/tYJpUUs4vs"
+		avatarSubLabel.TextColor3 = theme.TextDark
+		avatarSubLabel.TextSize = 9
+		avatarSubLabel.Font = Enum.Font.Gotham
+		avatarSubLabel.BackgroundTransparency = 1
+		avatarSubLabel.TextXAlignment = Enum.TextXAlignment.Left
+		avatarSubLabel.TextTruncate = Enum.TextTruncate.None
+		avatarSubLabel.Size = UDim2.new(1, -62, 0, 10)
+		avatarSubLabel.Position = UDim2.new(0, 50, 0, showDisplayName and 36 or 22)
+		avatarSubLabel.Parent = userSectionContainer
+		windowObject._DiscordLabel = avatarSubLabel
 	end
 
 	--[[local avatarFrame = Instance.new("Frame")
@@ -4213,8 +4235,8 @@ function Zenith:Window(config)
 		if activeTabPage then activeTabPage.Visible = false end
 		if activeTabButton then
 			activeTabButton.Title.Font = Enum.Font.GothamSemibold
-			tweenObj(activeTabButton.Ico, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0.4})
-			tweenObj(activeTabButton.Title, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = sidebarExpanded and 0.4 or 1})
+			tweenObj(activeTabButton.Ico, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0.4, ImageColor3 = theme.Text})
+			tweenObj(activeTabButton.Title, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = sidebarExpanded and 0.4 or 1, TextColor3 = theme.Text})
 		end
 		activeTabPage = page
 		activeTabButton = button
@@ -4226,8 +4248,8 @@ function Zenith:Window(config)
 		end
 		if button then
 			button.Title.Font = Enum.Font.GothamBlack
-			tweenObj(button.Ico, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0})
-			tweenObj(button.Title, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = sidebarExpanded and 0 or 1})
+			tweenObj(button.Ico, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {ImageTransparency = 0, ImageColor3 = accentColor})
+			tweenObj(button.Title, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {TextTransparency = sidebarExpanded and 0 or 1, TextColor3 = accentColor})
 		end
 	end
 
@@ -4578,10 +4600,7 @@ function Zenith:Window(config)
 				tweenObj(targetFrame, 0.25, nil, nil, {BackgroundColor3 = theme.Second})
 			end)
 			clickButton.MouseButton1Down:Connect(function()
-				tweenObj(targetFrame, 0.25, nil, nil, {BackgroundColor3 = Color3.fromRGB(
-					math.clamp(theme.Second.R * 255 + 6, 0, 255),
-					math.clamp(theme.Second.G * 255 + 6, 0, 255),
-					math.clamp(theme.Second.B * 255 + 6, 0, 255))})
+				tweenObj(targetFrame, 0.25, nil, nil, {BackgroundColor3 = accentColor})
 			end)
 			clickButton.MouseButton1Up:Connect(function()
 				tweenObj(targetFrame, 0.25, nil, nil, {BackgroundColor3 = Color3.fromRGB(
