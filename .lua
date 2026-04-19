@@ -1,3 +1,4 @@
+--Venty
 local Zenith = {}
 Zenith.Version = "1.3.0h"
 Zenith.Flags = {}
@@ -5007,7 +5008,7 @@ function Zenith:Window(config)
 			switchContainer.BackgroundTransparency = 0.2
 			switchContainer.BorderSizePixel = 0
 			switchContainer.Size = UDim2.new(0, 51, 0, 31)
-			switchContainer.Position = UDim2.new(1, -12, 0.5, 0)
+            switchContainer.Position = UDim2.new(1, -63, 0.5, 0)
 			switchContainer.AnchorPoint = Vector2.new(1, 0.5)
 			switchContainer.Parent = frame
 			addCorner(switchContainer, 0, 15.5)
@@ -5017,7 +5018,10 @@ function Zenith:Window(config)
 			switchKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			switchKnob.BorderSizePixel = 0
 			switchKnob.Size = UDim2.new(0, 27, 0, 27)
-			switchKnob.Position = UDim2.new(resolvedDefault and 1, -28, 0.5, 0)
+			switchKnob.Position = resolvedDefault 
+            and UDim2.new(0, 22, 0.5, 0)   -- ON: rechts
+            or  UDim2.new(0, 2, 0.5, 0)    -- OFF: links
+            switchKnob.AnchorPoint = Vector2.new(0, 0.5)
 			switchKnob.AnchorPoint = Vector2.new(1, 0.5)
 			switchKnob.Parent = switchContainer
 			addCorner(switchKnob, 0, 13.5)
@@ -5161,9 +5165,11 @@ function Zenith:Window(config)
 				})
 				
 				-- Animate knob position
-				tweenObj(switchKnob, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
-					Position = UDim2.new(targetKnobPos, value and -28 or 4, 0.5, 0)
-				})
+				tweenObj(switchKnob, 0.25, ..., {
+                   Position = value 
+                    and UDim2.new(0, 22, 0.5, 0)   -- ON
+                    or  UDim2.new(0, 2, 0.5, 0)    -- OFF
+                })
 				
 				-- Optional haptic feedback
 				tweenObj(switchKnob, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
