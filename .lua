@@ -1,5 +1,3 @@
---lol
-
 local Zenith = {}
 Zenith.Version = "1.3.0h"
 Zenith.Flags = {}
@@ -86,7 +84,7 @@ do
 		Divider = Color3.fromRGB(200, 200, 210),
 		Text = Color3.fromRGB(30, 30, 35),
 		TextDark = Color3.fromRGB(100, 100, 115),
-		Accent = Color3.fromRGB(160, 130, 255),
+		Accent = Color3.fromRGB(52, 199, 89),
 	})
 
 	Themes:Add("Midnight", {
@@ -96,7 +94,7 @@ do
 		Divider = Color3.fromRGB(60, 60, 90),
 		Text = Color3.fromRGB(230, 230, 255),
 		TextDark = Color3.fromRGB(140, 140, 180),
-		Accent = Color3.fromRGB(100, 80, 255),
+		Accent = Color3.fromRGB(52, 199, 89),
 	})
 
 	Themes:Add("Crimson", {
@@ -106,7 +104,7 @@ do
 		Divider = Color3.fromRGB(90, 50, 50),
 		Text = Color3.fromRGB(255, 230, 230),
 		TextDark = Color3.fromRGB(180, 140, 140),
-		Accent = Color3.fromRGB(255, 60, 60),
+		Accent = Color3.fromRGB(52, 199, 89),
 	})
 
 	Themes:Add("Forest", {
@@ -116,7 +114,7 @@ do
 		Divider = Color3.fromRGB(50, 80, 50),
 		Text = Color3.fromRGB(230, 255, 230),
 		TextDark = Color3.fromRGB(140, 180, 140),
-		Accent = Color3.fromRGB(60, 200, 100),
+		Accent = Color3.fromRGB(52, 199, 89),
 	})
 end
 
@@ -254,7 +252,6 @@ local function makeRes(mainWindow, options)
 			handle.AnchorPoint = Vector2.new(0.5, h.ay)
 			handle.Position = UDim2.new(0.5, 0, h.ay, 0)
 		end
-		--test
 		handle.Parent = mainWindow
 		table.insert(handleFrames, handle)
 
@@ -317,11 +314,10 @@ local function makeRes(mainWindow, options)
 	end
 
 	return function()
-		for _, c in ipairs(connections) do pcall(function() c:Disconnect() end) end
+		for _, c in ipairs(cs) do pcall(function() c:Disconnect() end) end
 		for _, f in ipairs(handleFrames) do pcall(function() f:Destroy() end) end
 	end
-end -- test
-
+end
 
 local function normalModifiers(mod)
 	if mod == nil then return {} end
@@ -1497,7 +1493,6 @@ function Zenith:Topbar(theme)
 
 	local firstRowWidth = firstRowCount * buttonSize + (firstRowCount - 1) * buttonGap
 
-	-- calcing
 	local ownerButtonWidth = 0
 	local ownerButtonCount = #Zenith.OwnerButtons
 	if ownerButtonCount > 0 then
@@ -3187,8 +3182,8 @@ function Zenith:Window(config)
 	resBtn.BackgroundTransparency = 1
 	resBtn.BorderSizePixel = 0
 	resBtn.Size = UDim2.new(0, 30, 0, 30)
-	resBtn.Position = UDim2.new(0, -40, 0, 10) -- l
-	resBtn.Parent = topBar -- might change - windowbuttoncont
+	resBtn.Position = UDim2.new(0, -40, 0, 10)
+	resBtn.Parent = topBar
 	
 	local resIcon = Instance.new("ImageLabel")
 	resIcon.Image = "rbxassetid://9307576840"
@@ -3200,7 +3195,7 @@ function Zenith:Window(config)
 	resIcon.Parent = resBtn
 	
 	resBtn.MouseEnter:Connect(function()
-		tweenObj(resIcon, 0.15, nil, nil, {ImageCoor3 = theme.Text})
+		tweenObj(resIcon, 0.15, nil, nil, {ImageColor3 = theme.Text})
 	end)
 	resBtn.MouseLeave:Connect(function()
 		tweenObj(resIcon, 0.15, nil, nil, {
@@ -3211,7 +3206,7 @@ function Zenith:Window(config)
 	resBtn.MouseButton1Click:Connect(function()
 		resActive = not resActive
 		if resActive then
-			resCleanup = makeResizable(mainWindow, {
+			resCleanup = makeRes(mainWindow, {
 				minWidth = 400,
 				minHeight = 250,
 				onRes = function(w, h)
@@ -3339,11 +3334,6 @@ function Zenith:Window(config)
 	bottomDivider.Size = UDim2.new(1, 0, 0, 1)
 	bottomDivider.Position = UDim2.new(0, 0, 1, -50)
 	bottomDivider.Parent = sidebar
-
-	--if not showPlayerName then
-	--	tabHolder.Size = UDim2.new(1, 0, 1, 0)
-	--	bottomDivider.Visible = false
-	--end
 
 	if not Zenith.UserSection then
 		tabHolder.Size = UDim2.new(1, 0, 1, 0)
@@ -3647,7 +3637,6 @@ function Zenith:Window(config)
 			openProfileView()
 		end)
 
-		-- closeelsewhere
 		UserInputService.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 and menuOpen then
 				local mousePos = UserInputService:GetMouseLocation()
@@ -3659,7 +3648,6 @@ function Zenith:Window(config)
 			end
 		end)
 
-		--ref
 		windowObject._AvatarFrame = avatarFrame
 		windowObject._UserSectionContainer = userSectionContainer
 
@@ -3710,77 +3698,6 @@ function Zenith:Window(config)
 		avatarSubLabel.Parent = userSectionContainer
 		windowObject._DiscordLabel = avatarSubLabel
 	end
-
-	--[[local avatarFrame = Instance.new("Frame")
-	avatarFrame.BackgroundColor3 = theme.Divider
-	avatarFrame.BorderSizePixel = 0
-	avatarFrame.AnchorPoint = Vector2.new(0, 0.5)
-	avatarFrame.Size = UDim2.new(0, 32, 0, 32)
-	avatarFrame.Position = UDim2.new(0, 10, 0.5, 0)
-	avatarFrame.Parent = bottomBar
-	addCorner(avatarFrame, 1, 0)
-
-	local avatarImage = Instance.new("ImageLabel")
-	avatarImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId= " .. LocalPlayer.UserId .. "&width=420&height=420&format=png"
-	avatarImage.BackgroundTransparency = 1
-	avatarImage.Size = UDim2.new(1, 0, 1, 0)
-	avatarImage.Parent = avatarFrame
-
-	local avatarOverlay = Instance.new("ImageLabel")
-	avatarOverlay.Image = "rbxassetid://4031889928"
-	avatarOverlay.BackgroundTransparency = 1
-	avatarOverlay.ImageColor3 = theme.Second
-	avatarOverlay.Size = UDim2.new(1, 0, 1, 0)
-	avatarOverlay.Parent = avatarFrame
-
-	local avatarStrokeFrame = Instance.new("Frame")
-	avatarStrokeFrame.BackgroundTransparency = 1
-	avatarStrokeFrame.AnchorPoint = Vector2.new(0, 0.5)
-	avatarStrokeFrame.Size = UDim2.new(0, 32, 0, 32)
-	avatarStrokeFrame.Position = UDim2.new(0, 10, 0.5, 0)
-	avatarStrokeFrame.Parent = bottomBar
-	addCorner(avatarStrokeFrame, 1, 0)
-	addStroke(avatarStrokeFrame, theme.Stroke, 1)
-
-	local displayNameLabel = Instance.new("TextLabel")
-	displayNameLabel.Text = LocalPlayer.DisplayName
-	displayNameLabel.TextColor3 = theme.Text
-	displayNameLabel.TextSize = 13
-	displayNameLabel.Font = Enum.Font.GothamBold
-	displayNameLabel.BackgroundTransparency = 1
-	displayNameLabel.TextXAlignment = Enum.TextXAlignment.Left
-	displayNameLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	displayNameLabel.Size = UDim2.new(1, -62, 0, 14)
-	displayNameLabel.Position = UDim2.new(0, 50, 0, 8)
-	displayNameLabel.Visible = showDisplayName
-	displayNameLabel.Parent = bottomBar
-
-	local usernameLabel = Instance.new("TextLabel")
-	usernameLabel.Text = "@" .. LocalPlayer.Name
-	usernameLabel.TextColor3 = theme.TextDark
-	usernameLabel.TextSize = 11
-	usernameLabel.Font = Enum.Font.Gotham
-	usernameLabel.BackgroundTransparency = 1
-	usernameLabel.TextXAlignment = Enum.TextXAlignment.Left
-	usernameLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	usernameLabel.Size = UDim2.new(1, -62, 0, 12)
-	usernameLabel.Position = UDim2.new(0, 50, 0, showDisplayName and 24 or 10)
-	usernameLabel.Visible = showUsername
-	usernameLabel.Parent = bottomBar
-
-	local avatarSubLabel = Instance.new("TextLabel")
-	avatarSubLabel.Text = ""
-	avatarSubLabel.TextColor3 = theme.TextDark
-	avatarSubLabel.TextTransparency = 1
-	avatarSubLabel.TextSize = 11
-	avatarSubLabel.Font = Enum.Font.Gotham
-	avatarSubLabel.BackgroundTransparency = 1
-	avatarSubLabel.TextXAlignment = Enum.TextXAlignment.Left
-	avatarSubLabel.TextTruncate = Enum.TextTruncate.AtEnd
-	avatarSubLabel.AnchorPoint = Vector2.new(0, 0.5)
-	avatarSubLabel.Size = UDim2.new(1, -56, 0, 14)
-	avatarSubLabel.Position = UDim2.new(0, 50, 0.5, (showDisplayName or showUsername) and 8 or 0)
-	avatarSubLabel.Parent = bottomBar --]]
 
 	toggleSidebarButton.MouseButton1Click:Connect(function()
 		if sidebarExpanded then
@@ -4280,7 +4197,6 @@ function Zenith:Window(config)
 	end
 
 	function windowObject:ClearAvatarMenu()
-		table.clear(Zenith.USI)
 		table.clear(Zenith.USI)
 	end
 
@@ -5044,12 +4960,13 @@ function Zenith:Window(config)
 			return obj
 		end
 
+		-- MODIFIED TOGGLE WITH APPLE STYLE
 		function tabObject:Toggle(text, default, callback, flagName, parentOverride)
 			local resolvedText = type(text) == "table" and (text.Name or "Toggle") or tostring(text)
 			local resolvedDefault = type(text) == "table" and (text.Default or false) or (default or false)
 			local resolvedCb = type(text) == "table" and (text.Callback or function() end) or (callback or function() end)
 			local resolvedFlag = type(text) == "table" and text.Flag or flagName
-			local resolvedColor = type(text) == "table" and (text.Color or theme.Accent or Color3.fromRGB(0, 170, 255)) or (theme.Accent or Color3.fromRGB(0, 170, 255))
+			local resolvedColor = type(text) == "table" and (text.Color or theme.Accent or Color3.fromRGB(52, 199, 89)) or (theme.Accent or Color3.fromRGB(52, 199, 89))
 			local resolvedSave = type(text) == "table" and (text.Save or false) or false
 			local resolvedConfirm = type(text) == "table" and (text.Confirm == true) or false
 			local resolvedLocked = type(text) == "table" and (text.Locked == true) or false
@@ -5084,28 +5001,38 @@ function Zenith:Window(config)
 			nameLabel.Position = UDim2.new(0, 12, 0, 0)
 			nameLabel.Parent = frame
 
-			local checkboxFrame = Instance.new("Frame")
-			checkboxFrame.BackgroundColor3 = resolvedColor
-			checkboxFrame.BorderSizePixel = 0
-			checkboxFrame.Size = UDim2.new(0, 24, 0, 24)
-			checkboxFrame.Position = UDim2.new(1, -24, 0.5, 0)
-			checkboxFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-			checkboxFrame.Parent = frame
-			addCorner(checkboxFrame, 0, 4)
-
-			local checkboxStroke = Instance.new("UIStroke")
-			checkboxStroke.Color = resolvedColor
-			checkboxStroke.Transparency = 0.5
-			checkboxStroke.Parent = checkboxFrame
-
-			local checkIcon = Instance.new("ImageLabel")
-			checkIcon.Image = "rbxassetid://3944680095"
-			checkIcon.BackgroundTransparency = 1
-			checkIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
-			checkIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-			checkIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
-			checkIcon.Size = UDim2.new(0, 20, 0, 20)
-			checkIcon.Parent = checkboxFrame
+			-- Apple Style Switch Container
+			local switchContainer = Instance.new("Frame")
+			switchContainer.BackgroundColor3 = resolvedDefault and resolvedColor or Color3.fromRGB(120, 120, 128)
+			switchContainer.BackgroundTransparency = 0.2
+			switchContainer.BorderSizePixel = 0
+			switchContainer.Size = UDim2.new(0, 51, 0, 31)
+			switchContainer.Position = UDim2.new(1, -12, 0.5, 0)
+			switchContainer.AnchorPoint = Vector2.new(1, 0.5)
+			switchContainer.Parent = frame
+			addCorner(switchContainer, 0, 15.5)
+			
+			-- Apple Style Switch Knob
+			local switchKnob = Instance.new("Frame")
+			switchKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			switchKnob.BorderSizePixel = 0
+			switchKnob.Size = UDim2.new(0, 27, 0, 27)
+			switchKnob.Position = UDim2.new(resolvedDefault and 1, -28, 0.5, 0)
+			switchKnob.AnchorPoint = Vector2.new(1, 0.5)
+			switchKnob.Parent = switchContainer
+			addCorner(switchKnob, 0, 13.5)
+			
+			-- Shadow effect for knob
+			local knobShadow = Instance.new("ImageLabel")
+			knobShadow.Image = "rbxassetid://3926286307"
+			knobShadow.BackgroundTransparency = 1
+			knobShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			knobShadow.ImageTransparency = 0.5
+			knobShadow.Size = UDim2.new(1, 4, 1, 4)
+			knobShadow.Position = UDim2.new(0, -2, 0, -2)
+			knobShadow.ZIndex = 0
+			knobShadow.Parent = switchKnob
+			addCorner(knobShadow, 0, 13.5)
 
 			local confirmRow = nil
 			local confirmPending = false
@@ -5199,16 +5126,7 @@ function Zenith:Window(config)
 
 				confirmYes.MouseButton1Click:Connect(function()
 					closeConfirm()
-					toggleObj.Value = not toggleObj.Value
-					tweenObj(checkboxFrame, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-						{BackgroundColor3 = toggleObj.Value and resolvedColor or theme.Divider})
-					tweenObj(checkboxStroke, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-						{Color = toggleObj.Value and resolvedColor or theme.Stroke})
-					tweenObj(checkIcon, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {
-						ImageTransparency = toggleObj.Value and 0 or 1,
-						Size = toggleObj.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8),
-					})
-					pcall(resolvedCb, toggleObj.Value)
+					toggleObj:Set(not toggleObj.Value)
 					if doSaveConfig then saveFlags(configFolder, configFile) end
 				end)
 
@@ -5233,14 +5151,32 @@ function Zenith:Window(config)
 
 			function toggleObj:Set(value)
 				toggleObj.Value = value
-				tweenObj(checkboxFrame, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-					{BackgroundColor3 = value and resolvedColor or theme.Divider})
-				tweenObj(checkboxStroke, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out,
-					{Color = value and resolvedColor or theme.Stroke})
-				tweenObj(checkIcon, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out, {
-					ImageTransparency = value and 0 or 1,
-					Size = value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8),
+				local targetColor = value and resolvedColor or Color3.fromRGB(120, 120, 128)
+				local targetKnobPos = value and 1 or 0
+				
+				-- Animate container background
+				tweenObj(switchContainer, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+					BackgroundColor3 = targetColor,
+					BackgroundTransparency = value and 0.2 or 0.3
 				})
+				
+				-- Animate knob position
+				tweenObj(switchKnob, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+					Position = UDim2.new(targetKnobPos, value and -28 or 4, 0.5, 0)
+				})
+				
+				-- Optional haptic feedback
+				tweenObj(switchKnob, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+					Size = UDim2.new(0, 29, 0, 29)
+				})
+				task.delay(0.08, function()
+					if switchKnob and switchKnob.Parent then
+						tweenObj(switchKnob, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {
+							Size = UDim2.new(0, 27, 0, 27)
+						})
+					end
+				end)
+				
 				pcall(resolvedCb, value)
 			end
 
@@ -5288,8 +5224,9 @@ function Zenith:Window(config)
 					if cl then cl.TextColor3 = t.TextDark end
 				end
 				if not toggleObj.Value then
-					checkboxFrame.BackgroundColor3 = t.Divider
-					checkboxStroke.Color = t.Stroke
+					switchContainer.BackgroundColor3 = Color3.fromRGB(120, 120, 128)
+				else
+					switchContainer.BackgroundColor3 = resolvedColor
 				end
 			end
 			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = toggleObj, tab = tabEntry})
@@ -6459,7 +6396,6 @@ function Zenith:Window(config)
 			return progressObj
 		end
 		
-		-- fdecs
 		tabObject.AddSection = tabObject.Section
 		tabObject.AddButton = tabObject.Button
 		tabObject.AddToggle = tabObject.Toggle
@@ -6726,8 +6662,6 @@ function Zenith:Init(theme)
         end
     end)
 end
-
-local _wmGui = nil
 
 local _wmGui = nil
 
