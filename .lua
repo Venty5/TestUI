@@ -54,7 +54,7 @@ do
 		Divider = Color3.fromRGB(40, 40, 40),
 		Text = Color3.fromRGB(240, 240, 240),
 		TextDark = Color3.fromRGB(150, 150, 150),
-		Accent = Color3.fromRGB(180, 160, 255),
+		Accent = Color3.fromRGB(203, 213, 217),
 	}
 
 	function Themes:Add(name, cfg)
@@ -74,7 +74,7 @@ do
 		Divider = Color3.fromRGB(40, 40, 40),
 		Text = Color3.fromRGB(240, 240, 240),
 		TextDark = Color3.fromRGB(150, 150, 150),
-		Accent = Color3.fromRGB(180, 160, 255),
+		Accent = Color3.fromRGB(203, 213, 217),
 	})
 
 	Themes:Add("Light", {
@@ -146,7 +146,7 @@ end
 
 local function addStroke(parent, color, thickness)
 	local stroke = Instance.new("UIStroke")
-	stroke.Color = color or Color3.fromRGB(180, 160, 255)
+	stroke.Color = color or Color3.fromRGB(203, 213, 217)
 	stroke.Thickness = thickness or 1
 	stroke.Parent = parent
 	return stroke
@@ -696,7 +696,7 @@ function Zenith:Notify(configOrText, durationArg)
 		content = ""
 		image = "rbxassetid://4384403532"
 		duration = durationArg or 5
-		barColor = Color3.fromRGB(180, 160, 255)
+		barColor = Color3.fromRGB(203, 213, 217)
 	end
 
 	local onClick = type(configOrText) == "table" and configOrText.OnClick or nil
@@ -913,7 +913,7 @@ function Zenith:CNotify(config)
 	local additional = config.Additional or ""
 	local image = config.Image or "rbxassetid://4384403532"
 	local duration = config.Time or 5
-	local barColor = config.DurationColor or Color3.fromRGB(180, 160, 255)
+	local barColor = config.DurationColor or Color3.fromRGB(203, 213, 217)
 	local soundId = config.SoundId
 	local onClick = config.OnClick
 
