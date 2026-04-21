@@ -3064,7 +3064,7 @@ function Void:Window(config)
 	local mainWindow = Instance.new("Frame")
 	mainWindow.Name = "MainWindow"
 	mainWindow.BackgroundColor3 = theme.Main
-	mainWindow.BackgroundTransparency = 0.3
+	mainWindow.BackgroundTransparency = 0
 	mainWindow.BorderSizePixel = 0
 	mainWindow.Position = UDim2.new(0.5, -307, 0.5, -172)
 	mainWindow.Size = UDim2.new(0, 615, 0, 344)
