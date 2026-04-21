@@ -1,40 +1,40 @@
-local Zenith = {}
-Zenith.Version = "1.3.0h"
-Zenith.Flags = {}
-Zenith.SaveCfg = false
-Zenith.Folder = "Zenith"
-Zenith._CfgFile = ""
-Zenith.Binds = {}
-Zenith._BindListGui = nil
-Zenith._TopbarGui = nil
-Zenith._RadialGui = nil
+local Void = {}
+Void.Version = "1.3.0h"
+Void.Flags = {}
+Void.SaveCfg = false
+Void.Folder = "Void"
+Void._CfgFile = ""
+Void.Binds = {}
+Void._BindListGui = nil
+Void._TopbarGui = nil
+Void._RadialGui = nil
 
-Zenith.ShowKeybindList = false
-Zenith.ShowTopbar = false
-Zenith.TopbarBind = nil
-Zenith.ShowRadial = false
-Zenith.RadialHotkey = nil
-Zenith.RadialMode = "hold"
-Zenith.RadialAnim = "Scale"
+Void.ShowKeybindList = false
+Void.ShowTopbar = false
+Void.TopbarBind = nil
+Void.ShowRadial = false
+Void.RadialHotkey = nil
+Void.RadialMode = "hold"
+Void.RadialAnim = "Scale"
 
-Zenith._Tabs = {}
-Zenith.TabOrder = false
-Zenith._ElementRegistry = {}
+Void._Tabs = {}
+Void.TabOrder = false
+Void._ElementRegistry = {}
 
-Zenith._ScriptKey = ""
+Void._ScriptKey = ""
 
-Zenith._MainWindowRef = nil
-Zenith._MinimizedRef = nil
-Zenith._RestoreRef = nil
+Void._MainWindowRef = nil
+Void._MinimizedRef = nil
+Void._RestoreRef = nil
 
-Zenith.OwnerButtons = {}
-Zenith.HoverMaximizeEnabled = true
-Zenith.HoverMaximizeDelay = 3 
+Void.OwnerButtons = {}
+Void.HoverMaximizeEnabled = true
+Void.HoverMaximizeDelay = 3 
 
-Zenith.UserSection = false 
-Zenith.UserSectionRightClick = false
-Zenith.USI = {}
-Zenith.UserSectionItems = Zenith.USI
+Void.UserSection = false 
+Void.UserSectionRightClick = false
+Void.USI = {}
+Void.UserSectionItems = Void.USI
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -44,7 +44,7 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 local Themes = {}
-Zenith.Themes = Themes
+Void.Themes = Themes
 
 do
 	local defaultColors = {
@@ -649,13 +649,13 @@ local notifRightMargin = 25
 local notifBottomMargin = 25
 
 local function getNotifTheme()
-	return Zenith._activeTheme or Zenith.Themes.Dark
+	return Void._activeTheme or Void.Themes.Dark
 end
 
 local function getNotifGui()
 	if notifGui and notifGui.Parent then return notifGui end
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithNotifications"
+	screenGui.Name = "VoidNotifications"
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 999
 	screenGui.IgnoreGuiInset = true
@@ -683,14 +683,14 @@ local function refNotifs(skipIndex)
 	end
 end
 
-function Zenith:Notify(configOrText, durationArg)
+function Void:Notify(configOrText, durationArg)
 	local title, content, image, duration, barColor
 	if type(configOrText) == "table" then
 		title = configOrText.Name or "Notification"
 		content = configOrText.Content or ""
 		image = configOrText.Image or "rbxassetid://4384403532"
 		duration = configOrText.Time or 5
-		barColor = configOrText.DurationColor or Color3.fromRGB(0, 170, 255)
+		barColor = configOrText.DurationColor or Color3.fromRGB(203, 213, 217)
 	else
 		title = tostring(configOrText or "Notification")
 		content = ""
@@ -906,7 +906,7 @@ function Zenith:Notify(configOrText, durationArg)
 	end)
 end
 
-function Zenith:CNotify(config)
+function Void:CNotify(config)
 	config = config or {}
 	local title = config.Name or "Advanced Notification"
 	local content = config.Content or ""
@@ -1110,7 +1110,7 @@ function Zenith:CNotify(config)
 			if not additional or additional == "" then return end
 			
 			local mGui = Instance.new("ScreenGui")
-			mGui.Name = "ZenithModal"
+			mGui.Name = "VoidModal"
 			mGui.ResetOnSpawn = false
 			mGui.DisplayOrder = 1000
 			mGui.IgnoreGuiInset = true
@@ -1267,7 +1267,7 @@ function Zenith:CNotify(config)
 	end)
 end
 
-function Zenith:Modal(config)
+function Void:Modal(config)
 	config = config or {}
 	local title = config.Name or "Notice"
 	local content = config.Content or ""
@@ -1277,7 +1277,7 @@ function Zenith:Modal(config)
 	local bodyText = additional ~= "" and (content .. "\n\n" .. additional) or content
 
 	local mGui = Instance.new("ScreenGui")
-	mGui.Name = "ZenithModal"
+	mGui.Name = "VoidModal"
 	mGui.ResetOnSpawn = false
 	mGui.DisplayOrder = 1000
 	mGui.IgnoreGuiInset = true
@@ -1432,12 +1432,12 @@ local function saveFlags(folder, file)
 	pcall(function()
 		if not isfolder(folder) then makefolder(folder) end
 		local saveData = {
-			__version = Zenith.Version,
+			__version = Void.Version,
 			__gameId = game.GameId,
-			__scriptKey = Zenith._ScriptKey,
+			__scriptKey = Void._ScriptKey,
 		}
-		for key, flagObj in pairs(Zenith.Flags) do
-			if Zenith.SaveCfg or flagObj.Save then
+		for key, flagObj in pairs(Void.Flags) do
+			if Void.SaveCfg or flagObj.Save then
 				saveData[key] = flagObj.Value
 			end
 		end
@@ -1445,7 +1445,7 @@ local function saveFlags(folder, file)
 	end)
 end
 
-function Zenith:AddOwnerButton(config)
+function Void:AddOwnerButton(config)
 	config = config or {}
 	local buttonConfig = {
 		Name = config.Name or "Button",
@@ -1456,22 +1456,22 @@ function Zenith:AddOwnerButton(config)
 		Color = config.Color or nil, 
 		Dropdown = config.Dropdown or nil 
 	}
-	table.insert(Zenith.OwnerButtons, buttonConfig)
+	table.insert(Void.OwnerButtons, buttonConfig)
 	return buttonConfig
 end
 
 
-function Zenith:ClearOwnerButtons()
-	Zenith.OwnerButtons = {}
+function Void:ClearOwnerButtons()
+	Void.OwnerButtons = {}
 end
 
-function Zenith:Topbar(theme)
-	if not Zenith.ShowTopbar then return end
-	if Zenith._TopbarGui and Zenith._TopbarGui.Parent then
-		Zenith._TopbarGui:Destroy()
+function Void:Topbar(theme)
+	if not Void.ShowTopbar then return end
+	if Void._TopbarGui and Void._TopbarGui.Parent then
+		Void._TopbarGui:Destroy()
 	end
 
-	local tabs = Zenith._Tabs
+	local tabs = Void._Tabs
 	local tabCount = #tabs
 	if tabCount == 0 then return end
 
@@ -1497,7 +1497,7 @@ function Zenith:Topbar(theme)
 
 	-- calcing
 	local ownerButtonWidth = 0
-	local ownerButtonCount = #Zenith.OwnerButtons
+	local ownerButtonCount = #Void.OwnerButtons
 	if ownerButtonCount > 0 then
 		ownerButtonWidth = ownerButtonCount * (buttonSize + buttonGap)
 	end
@@ -1514,13 +1514,13 @@ function Zenith:Topbar(theme)
 	local isExpanded = false
 
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithTopbar"
+	screenGui.Name = "VoidTopbar"
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 997
 	screenGui.IgnoreGuiInset = true
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	secGui(screenGui)
-	Zenith._TopbarGui = screenGui
+	Void._TopbarGui = screenGui
 
 	local topbarPanel = Instance.new("Frame")
 	topbarPanel.Name = "TopbarPanel"
@@ -1683,7 +1683,7 @@ function Zenith:Topbar(theme)
 			hideTooltip()
 			tweenObj(tabButton, 0.07, nil, nil, {BackgroundColor3 = accentColor})
 			tweenObj(tabButton, 0.22, nil, nil, {BackgroundColor3 = buttonBgColor})
-			if Zenith._RestoreRef then pcall(Zenith._RestoreRef) end
+			if Void._RestoreRef then pcall(Void._RestoreRef) end
 			pcall(tabEntry.selectFn)
 		end)
 	end
@@ -1698,9 +1698,9 @@ function Zenith:Topbar(theme)
 		ownerDivider.Position = UDim2.new(0, ownerStartX - 5, 0, verticalPad + 4)
 		ownerDivider.Parent = topbarPanel
 
-		table.sort(Zenith.OwnerButtons, function(a, b) return a.Order < b.Order end)
+		table.sort(Void.OwnerButtons, function(a, b) return a.Order < b.Order end)
 
-		for idx, btnConfig in ipairs(Zenith.OwnerButtons) do
+		for idx, btnConfig in ipairs(Void.OwnerButtons) do
 			local btnX = ownerStartX + ((idx - 1) * (buttonSize + buttonGap))
 
 			local ownerBtn = Instance.new("TextButton")
@@ -1936,9 +1936,9 @@ function Zenith:Topbar(theme)
 	local function buildIndex()
 		local index = {}
 		local seen = {}
-		for flagName, flagObj in pairs(Zenith.Flags) do
+		for flagName, flagObj in pairs(Void.Flags) do
 			local tabRef = nil
-			for _, entry in ipairs(Zenith._ElementRegistry) do
+			for _, entry in ipairs(Void._ElementRegistry) do
 				if entry.obj == flagObj then
 					tabRef = entry.tab
 					break
@@ -1947,13 +1947,13 @@ function Zenith:Topbar(theme)
 			table.insert(index, {key = flagName, obj = flagObj, tab = tabRef})
 			seen[flagObj] = true
 		end
-		for _, entry in ipairs(Zenith._ElementRegistry) do
+		for _, entry in ipairs(Void._ElementRegistry) do
 			if not seen[entry.obj] then
 				table.insert(index, {key = entry.name, obj = entry.obj, tab = entry.tab})
 				seen[entry.obj] = true
 			end
 		end
-		for _, bindEntry in ipairs(Zenith.Binds) do
+		for _, bindEntry in ipairs(Void.Binds) do
 			if not seen[bindEntry.Bind] then
 				table.insert(index, {key = bindEntry.Name, obj = bindEntry.Bind, tab = bindEntry.tab})
 				seen[bindEntry.Bind] = true
@@ -2072,7 +2072,7 @@ function Zenith:Topbar(theme)
 				local targetTab = entry.tab
 				if targetTab then
 					closeSearch(function()
-						if Zenith._RestoreRef then pcall(Zenith._RestoreRef) end
+						if Void._RestoreRef then pcall(Void._RestoreRef) end
 						pcall(targetTab.selectFn)
 					end)
 				elseif entry.obj and entry.obj.Type == "Toggle" and entry.obj.Set then
@@ -2125,28 +2125,28 @@ function Zenith:Topbar(theme)
 	return screenGui
 end
 
-function Zenith:Radial(theme)
-	if not Zenith.ShowRadial then return end
-	if not Zenith.RadialHotkey then
-		warn("Zenith >> ShowRadial = true but RadialHotkey is nil")
+function Void:Radial(theme)
+	if not Void.ShowRadial then return end
+	if not Void.RadialHotkey then
+		warn("Void >> ShowRadial = true but RadialHotkey is nil")
 		return
 	end
-	if Zenith._RadialGui and Zenith._RadialGui.Parent then
-		Zenith._RadialGui:Destroy()
+	if Void._RadialGui and Void._RadialGui.Parent then
+		Void._RadialGui:Destroy()
 	end
 
-	local tabs = Zenith._Tabs
+	local tabs = Void._Tabs
 	if #tabs == 0 then return end
 	local tabCount = #tabs
 
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithRadial"
+	screenGui.Name = "VoidRadial"
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 999
 	screenGui.IgnoreGuiInset = true
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	secGui(screenGui)
-	Zenith._RadialGui = screenGui
+	Void._RadialGui = screenGui
 
 	local ringRadius = 150
 	local innerRadius = 56
@@ -2206,7 +2206,7 @@ function Zenith:Radial(theme)
 	addStroke(centerCircle, strokeColor, 1.5)
 
 	local centerHint = Instance.new("TextLabel")
-	centerHint.Text = Zenith.RadialMode == "hold" and "release\nto cancel" or "click\nto select"
+	centerHint.Text = Void.RadialMode == "hold" and "release\nto cancel" or "click\nto select"
 	centerHint.Font = Enum.Font.Gotham
 	centerHint.TextSize = 10
 	centerHint.TextColor3 = theme.TextDark or Color3.fromRGB(90, 90, 115)
@@ -2376,7 +2376,7 @@ function Zenith:Radial(theme)
 			end
 		end)
 
-		local currentAnim = Zenith.RadialAnim or "Scale"
+		local currentAnim = Void.RadialAnim or "Scale"
 
 		if currentAnim == "Spiral" then
 			tweenObj(backdrop, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundTransparency = 0.55})
@@ -2473,7 +2473,7 @@ function Zenith:Radial(theme)
 		tweenObj(spinRing, 0.18, nil, nil, {ImageTransparency = 1})
 		task.delay(0.2, function() spinRing.Visible = false spinRing.ImageTransparency = 0.75 end)
 
-		local currentAnim = Zenith.RadialAnim or "Scale"
+		local currentAnim = Void.RadialAnim or "Scale"
 
 		local myCloseGen = generation
 		local function afterClose()
@@ -2494,7 +2494,7 @@ function Zenith:Radial(theme)
 			end
 			centerCircle.Size = UDim2.new(0, innerRadius * 2, 0, innerRadius * 2)
 			if selectIndex then
-				if Zenith._RestoreRef then pcall(Zenith._RestoreRef) end
+				if Void._RestoreRef then pcall(Void._RestoreRef) end
 				pcall(tabs[selectIndex].selectFn)
 			end
 		end
@@ -2588,7 +2588,7 @@ function Zenith:Radial(theme)
 		setHovered(segmentIndex)
 	end)
 
-	if Zenith.RadialMode == "toggle" then
+	if Void.RadialMode == "toggle" then
 		UserInputService.InputBegan:Connect(function(input, gameProcessed)
 			if not isOpen then return end
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -2599,17 +2599,17 @@ function Zenith:Radial(theme)
 
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if gameProcessed then return end
-		if input.KeyCode ~= Zenith.RadialHotkey then return end
-		if Zenith.RadialMode == "toggle" then
+		if input.KeyCode ~= Void.RadialHotkey then return end
+		if Void.RadialMode == "toggle" then
 			if isOpen then closeWheel(nil) else openWheel() end
 		else
 			openWheel()
 		end
 	end)
 
-	if Zenith.RadialMode == "hold" then
+	if Void.RadialMode == "hold" then
 		UserInputService.InputEnded:Connect(function(input)
-			if input.KeyCode ~= Zenith.RadialHotkey then return end
+			if input.KeyCode ~= Void.RadialHotkey then return end
 			if isOpen then closeWheel(hoveredIndex) end
 		end)
 	end
@@ -2617,19 +2617,19 @@ function Zenith:Radial(theme)
 	return screenGui
 end
 
-function Zenith:KeybindList(theme)
-	if Zenith.ShowKeybindList == false then return end
-	if Zenith._BindListGui and Zenith._BindListGui.Parent then
-		Zenith._BindListGui:Destroy()
+function Void:KeybindList(theme)
+	if Void.ShowKeybindList == false then return end
+	if Void._BindListGui and Void._BindListGui.Parent then
+		Void._BindListGui:Destroy()
 	end
 
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithKeybindList"
+	screenGui.Name = "VoidKeybindList"
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 998
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	secGui(screenGui)
-	Zenith._BindListGui = screenGui
+	Void._BindListGui = screenGui
 
 	local mainColor = theme.Main or Color3.fromRGB(20, 20, 22)
 	local secondColor = theme.Second or Color3.fromRGB(25, 25, 28)
@@ -2784,19 +2784,19 @@ function Zenith:KeybindList(theme)
 		end)
 	end
 
-	for _, entry in ipairs(Zenith.Binds) do
+	for _, entry in ipairs(Void.Binds) do
 		buildKeybindRow(entry)
 	end
 
-	local knownBindCount = #Zenith.Binds
+	local knownBindCount = #Void.Binds
 	task.spawn(function()
 		while screenGui and screenGui.Parent do
 			task.wait(0.5)
-			if #Zenith.Binds > knownBindCount then
-				for newIndex = knownBindCount + 1, #Zenith.Binds do
-					buildKeybindRow(Zenith.Binds[newIndex])
+			if #Void.Binds > knownBindCount then
+				for newIndex = knownBindCount + 1, #Void.Binds do
+					buildKeybindRow(Void.Binds[newIndex])
 				end
-				knownBindCount = #Zenith.Binds
+				knownBindCount = #Void.Binds
 			end
 		end
 	end)
@@ -2805,38 +2805,38 @@ function Zenith:KeybindList(theme)
 	return screenGui
 end
 
-function Zenith:Window(config)
-	Zenith._initDone = false
+function Void:Window(config)
+	Void._initDone = false
 	config = config or {}
 
 	local targets = {game:GetService("CoreGui"), LocalPlayer.PlayerGui}
 	for _, target in pairs(targets) do
-		for _, guiName in ipairs({"ZenithUI", "ZenithNotifications", "ZenithNotificationsClassic", "ZenithKeybindList", "ZenithTopbar", "ZenithRadial"}) do
+		for _, guiName in ipairs({"VoidUI", "VoidNotifications", "VoidNotificationsClassic", "VoidKeybindList", "VoidTopbar", "VoidRadial"}) do
 			local guiInstance = target:FindFirstChild(guiName)
 			if guiInstance then guiInstance:Destroy() end
 		end
 	end
 	pcall(function()
 		local protectedGui = gethui()
-		for _, guiName in ipairs({"ZenithUI", "ZenithNotifications", "ZenithNotificationsClassic", "ZenithKeybindList", "ZenithTopbar", "ZenithRadial"}) do
+		for _, guiName in ipairs({"VoidUI", "VoidNotifications", "VoidNotificationsClassic", "VoidKeybindList", "VoidTopbar", "VoidRadial"}) do
 			local guiInstance = protectedGui:FindFirstChild(guiName)
 			if guiInstance then guiInstance:Destroy() end
 		end
 	end)
-	table.clear(Zenith.Binds)
-	table.clear(Zenith._Tabs)
-	table.clear(Zenith._ElementRegistry)
+	table.clear(Void.Binds)
+	table.clear(Void._Tabs)
+	table.clear(Void._ElementRegistry)
 	table.clear(notifStack)
-	Zenith._BindListGui = nil
-	Zenith._TopbarGui = nil
-	Zenith._RadialGui = nil
-	Zenith._MainWindowRef = nil
-	Zenith._RestoreRef = nil
-	Zenith._MinimizedRef = nil
+	Void._BindListGui = nil
+	Void._TopbarGui = nil
+	Void._RadialGui = nil
+	Void._MainWindowRef = nil
+	Void._RestoreRef = nil
+	Void._MinimizedRef = nil
 
-	local windowName = config.Name or "ZenithUI"
+	local windowName = config.Name or "VoidUI"
 	local theme = Themes[config.Theme] or Themes.Dark
-	Zenith._activeTheme = theme
+	Void._activeTheme = theme
 	local doStartup = config.Startup or false
 	local startupAnim = config.StartupAnim or "Fade"
 	local startupText = config.StartupText or ""
@@ -2857,11 +2857,11 @@ function Zenith:Window(config)
 	local minimizeAnim = config.MinimizeAnim or "Slide"
 	
 	local configScriptKey = config.ScriptKey or ""
-	if configScriptKey ~= "" then Zenith._ScriptKey = configScriptKey end
+	if configScriptKey ~= "" then Void._ScriptKey = configScriptKey end
 
-	Zenith.SaveCfg = doSaveConfig
-	Zenith.Folder = configFolder
-	Zenith._CfgFile = configFile
+	Void.SaveCfg = doSaveConfig
+	Void.Folder = configFolder
+	Void._CfgFile = configFile
 
 	local accentColor = theme.Accent or Color3.fromRGB(0, 170, 255)
 	local accentElements = {}
@@ -2874,7 +2874,7 @@ function Zenith:Window(config)
 	local sidebarCount = 0
 
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithUI"
+	screenGui.Name = "VoidUI"
 	screenGui.ResetOnSpawn = false
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	secGui(screenGui)
@@ -2882,7 +2882,7 @@ function Zenith:Window(config)
 	if keySystem then
 		local keyResolved = false
 		local keyGui = Instance.new("ScreenGui")
-		keyGui.Name = "ZenithKeySystem"
+		keyGui.Name = "VoidKeySystem"
 		keyGui.ResetOnSpawn = false
 		keyGui.DisplayOrder = 1000
 		keyGui.IgnoreGuiInset = true
@@ -3057,7 +3057,7 @@ function Zenith:Window(config)
 
 	if screenGui.Parent then
 		for _, child in pairs(screenGui.Parent:GetChildren()) do
-			if child.Name == "ZenithUI" and child ~= screenGui then child:Destroy() end
+			if child.Name == "VoidUI" and child ~= screenGui then child:Destroy() end
 		end
 	end
 
@@ -3075,7 +3075,7 @@ function Zenith:Window(config)
 
 	local windowStroke = addStroke(mainWindow, theme.Stroke, 1.5)
 
-	Zenith._MainWindowRef = mainWindow
+	Void._MainWindowRef = mainWindow
 
 	local topBar = Instance.new("Frame")
 	topBar.BackgroundTransparency = 1
@@ -3239,7 +3239,7 @@ function Zenith:Window(config)
 	makeDraggable(dragHandle, mainWindow)
 
 	local toastScreenGui = Instance.new("ScreenGui")
-	toastScreenGui.Name = "ZenithToasts"
+	toastScreenGui.Name = "VoidToasts"
 	toastScreenGui.ResetOnSpawn = false
 	toastScreenGui.DisplayOrder = 998
 	toastScreenGui.IgnoreGuiInset = true
@@ -3321,7 +3321,7 @@ function Zenith:Window(config)
 	tabHolder.BottomImage = "rbxassetid://7445543667"
 	tabHolder.TopImage = "rbxassetid://7445543667"
 	tabHolder.CanvasSize = UDim2.new(0, 0, 0, 0)
-	tabHolder.Size = UDim2.new(1, 0, 1, Zenith.UserSection and -50 or 0)
+	tabHolder.Size = UDim2.new(1, 0, 1, Void.UserSection and -50 or 0)
 	tabHolder.ClipsDescendants = true
 	tabHolder.Parent = sidebar
 
@@ -3343,7 +3343,7 @@ function Zenith:Window(config)
 	--	bottomDivider.Visible = false
 	--end
 
-	if not Zenith.UserSection then
+	if not Void.UserSection then
 		tabHolder.Size = UDim2.new(1, 0, 1, 0)
 		bottomDivider.Visible = false
 	end
@@ -3352,7 +3352,7 @@ function Zenith:Window(config)
 	bottomBar.BackgroundTransparency = 1
 	bottomBar.Size = UDim2.new(1, 0, 0, 50)
 	bottomBar.Position = UDim2.new(0, 0, 1, -50)
-	bottomBar.Visible = Zenith.UserSection
+	bottomBar.Visible = Void.UserSection
 	bottomBar.Parent = sidebar
 
 	local userSectionContainer = Instance.new("Frame")
@@ -3368,7 +3368,7 @@ function Zenith:Window(config)
 
 	local windowObject = {}
 
-	if Zenith.UserSection then
+	if Void.UserSection then
 		local avatarFrame = Instance.new("TextButton") 
 		avatarFrame.Name = "AvatarFrame"
 		avatarFrame.Text = ""
@@ -3410,7 +3410,7 @@ function Zenith:Window(config)
 		
 		local function openProfileView()
 			local pGui = Instance.new("ScreenGui")
-			pGui.Name = "ZenithProfileView"
+			pGui.Name = "VoidProfileView"
 			pGui.ResetOnSpawn = false
 			pGui.DisplayOrder = 300
 			pGui.IgnoreGuiInset = true
@@ -3576,11 +3576,11 @@ function Zenith:Window(config)
 			makeProfileBtn("Copy User ID", "rbxassetid://3944703587", function()
 				if setclipboard then
 					setclipboard(tostring(LocalPlayer.UserId))
-					Zenith:Notify({Name = "Copied", Content = "User ID copied to clipboard.", Time = 3})
+					Void:Notify({Name = "Copied", Content = "User ID copied to clipboard.", Time = 3})
 				end
 			end)
 
-			for _, item in ipairs(Zenith.USI) do
+			for _, item in ipairs(Void.USI) do
 				makeProfileBtn(item.Name or "Option", item.Icon or "rbxassetid://3944703587", item.Callback or function() end)
 			end
 
@@ -3641,7 +3641,7 @@ function Zenith:Window(config)
 		end
 
 		avatarFrame.MouseButton2Click:Connect(function()
-			if not Zenith.UserSectionRightClick then return end
+			if not Void.UserSectionRightClick then return end
 			openProfileView()
 		end)
 
@@ -4019,7 +4019,7 @@ function Zenith:Window(config)
 				math.clamp(theme.Second.G * 255 + 15, 0, 255),
 				math.clamp(theme.Second.B * 255 + 15, 0, 255))})
 
-			hoverTimer = task.delay(Zenith.HoverMaximizeDelay, function()
+			hoverTimer = task.delay(Void.HoverMaximizeDelay, function()
 				if isHovering and minimizedBar then
 					isHovering = false
 					local currentBar = minimizedBar
@@ -4168,7 +4168,7 @@ function Zenith:Window(config)
 		animClose(function()
 			isHidden = true
 			pcall(closeCallback)
-			Zenith:Notify({
+			Void:Notify({
 				Name = "Interface Hidden",
 				Content = "Press " .. tostring(reopenKey.Name) .. " to reopen.",
 				Time = 5,
@@ -4226,8 +4226,8 @@ function Zenith:Window(config)
 			isMinimized = false
 		end
 	end
-	Zenith._RestoreRef = restoreWindow
-	Zenith._MinimizedRef = function() return isMinimized end
+	Void._RestoreRef = restoreWindow
+	Void._MinimizedRef = function() return isMinimized end
 
 	local function selectTab(page, button)
 		if activeTabPage then activeTabPage.Visible = false end
@@ -4252,7 +4252,7 @@ function Zenith:Window(config)
 	end
 
 	function windowObject:SetUserSectionEnabled(enabled)
-		Zenith.UserSection = enabled
+		Void.UserSection = enabled
 		if bottomBar then
 			bottomBar.Visible = enabled
 		end
@@ -4266,11 +4266,11 @@ function Zenith:Window(config)
 	end
 
 	function windowObject:SetAvatarMenuEnabled(enabled)
-		Zenith.UserSectionRightClick = enabled
+		Void.UserSectionRightClick = enabled
 	end
 
 	function windowObject:AddAvatarMenuItem(name, callback, icon)
-		table.insert(Zenith.USI, {
+		table.insert(Void.USI, {
 			Name = name,
 			Callback = callback,
 			Icon = icon or "rbxassetid://3944703587"
@@ -4278,8 +4278,8 @@ function Zenith:Window(config)
 	end
 
 	function windowObject:ClearAvatarMenu()
-		table.clear(Zenith.USI)
-		table.clear(Zenith.USI)
+		table.clear(Void.USI)
+		table.clear(Void.USI)
 	end
 
 	function windowObject:SetDisplayName(text)
@@ -4305,7 +4305,7 @@ function Zenith:Window(config)
 	function windowObject:Toast(text, icon)
 		text = tostring(text or "")
 		task.spawn(function()
-			local topY = Zenith.ShowTopbar and (14 + 48 + 8) or 14
+			local topY = Void.ShowTopbar and (14 + 48 + 8) or 14
 
 			local toast = Instance.new("Frame")
 			toast.BackgroundColor3 = Color3.fromRGB(24, 24, 30)
@@ -4450,7 +4450,7 @@ function Zenith:Window(config)
 		local newTheme = Themes[name]
 		if not newTheme then return end
 		theme = newTheme
-		Zenith._activeTheme = newTheme
+		Void._activeTheme = newTheme
 
 		mainWindow.BackgroundColor3 = newTheme.Main
 		sidebar.BackgroundColor3 = newTheme.Second
@@ -4476,14 +4476,14 @@ function Zenith:Window(config)
 
 		accentColor = newTheme.Accent or Color3.fromRGB(0, 170, 255)
 
-		for _, entry in ipairs(Zenith._ElementRegistry) do
+		for _, entry in ipairs(Void._ElementRegistry) do
 			if entry.obj and entry.obj.RefreshTheme then
 				pcall(function() entry.obj:RefreshTheme(newTheme) end)
 			end
 		end
 
-		if Zenith._TopbarGui then Zenith:Topbar(newTheme) end
-		if Zenith._RadialGui then Zenith:Radial(newTheme) end
+		if Void._TopbarGui then Void:Topbar(newTheme) end
+		if Void._RadialGui then Void:Radial(newTheme) end
 	end
 
 	function windowObject:SetAccentColor(color)
@@ -4561,7 +4561,7 @@ function Zenith:Window(config)
 			icon = tabIcon,
 			selectFn = function() selectTab(tabPage, tabButton) end,
 		}
-		table.insert(Zenith._Tabs, tabEntry)
+		table.insert(Void._Tabs, tabEntry)
 		
 		
 		sidebarCount += 1
@@ -4724,7 +4724,7 @@ function Zenith:Window(config)
 			end)
 
 			stepObj:Set(cIndx)
-			if stepFlag then Zenith.Flags[stepFlag] = stepObj end
+			if stepFlag then Void.Flags[stepFlag] = stepObj end
 
 			function stepObj:RefreshTheme(t)
 				nameLbl.TextColor3 = t.Text
@@ -4737,7 +4737,7 @@ function Zenith:Window(config)
 				local s3 = nextBtn:FindFirstChildOfClass("UIStroke") if s3 then s3.Color = t.Stroke end
 			end
 
-			table.insert(Zenith._ElementRegistry, {name = stepName, obj = stepObj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = stepName, obj = stepObj, tab = tabEntry})
 			return stepObj
 		end
 		
@@ -4817,7 +4817,7 @@ function Zenith:Window(config)
 				local s = f:FindFirstChildOfClass("UIStroke") if s then s.Color = t.Stroke end
 			end
 			
-			table.insert(Zenith._ElementRegistry, {name = kvName, obj = obj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = kvName, obj = obj, tab = tabEntry})
 			return obj
 		end
 
@@ -4987,7 +4987,7 @@ function Zenith:Window(config)
 				local s = frame:FindFirstChildOfClass("UIStroke")
 				if s then s.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = obj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedText, obj = obj, tab = tabEntry})
 			return obj
 		end
 
@@ -5038,7 +5038,7 @@ function Zenith:Window(config)
 				local s = frame:FindFirstChildOfClass("UIStroke")
 				if s then s.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = obj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedText, obj = obj, tab = tabEntry})
 			return obj
 		end
 
@@ -5273,7 +5273,7 @@ function Zenith:Window(config)
 				task.delay(0.3, function() lockOverlay.Visible = false end)
 			end
 
-			if resolvedFlag then Zenith.Flags[resolvedFlag] = toggleObj end
+			if resolvedFlag then Void.Flags[resolvedFlag] = toggleObj end
 			function toggleObj:RefreshTheme(t)
 				nameLabel.TextColor3 = t.Text
 				outerFrame.BackgroundColor3 = t.Second
@@ -5290,7 +5290,7 @@ function Zenith:Window(config)
 					checkboxStroke.Color = t.Stroke
 				end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = toggleObj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedText, obj = toggleObj, tab = tabEntry})
 			return toggleObj
 		end
 
@@ -5371,7 +5371,7 @@ function Zenith:Window(config)
 				local s2 = inputContainer:FindFirstChildOfClass("UIStroke")
 				if s2 then s2.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedPlaceholder, obj = obj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedPlaceholder, obj = obj, tab = tabEntry})
 			return obj
 		end
 
@@ -5517,7 +5517,7 @@ function Zenith:Window(config)
 			end)
 
 			sliderObj:Set(resolvedDefault)
-			if resolvedFlag then Zenith.Flags[resolvedFlag] = sliderObj end
+			if resolvedFlag then Void.Flags[resolvedFlag] = sliderObj end
 			function sliderObj:RefreshTheme(t)
 				titleLabel.TextColor3 = t.Text
 				frame.BackgroundColor3 = t.Second
@@ -5526,7 +5526,7 @@ function Zenith:Window(config)
 				local s = frame:FindFirstChildOfClass("UIStroke")
 				if s then s.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = sliderObj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedText, obj = sliderObj, tab = tabEntry})
 			return sliderObj
 		end
 
@@ -5602,7 +5602,7 @@ function Zenith:Window(config)
 				local s = frame:FindFirstChildOfClass("UIStroke")
 				if s then s.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedTitle, obj = obj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedTitle, obj = obj, tab = tabEntry})
 			return obj
 		end
 
@@ -5822,7 +5822,7 @@ function Zenith:Window(config)
 
 			dropdown:Refresh(dropdown.Options, false)
 			dropdown:Set(dropdown.Value)
-			if dropdownFlag then Zenith.Flags[dropdownFlag] = dropdown end
+			if dropdownFlag then Void.Flags[dropdownFlag] = dropdown end
 			function dropdown:RefreshTheme(t)
 				headerNameLabel.TextColor3 = t.Text
 				selectedLabel.TextColor3 = t.TextDark
@@ -5837,7 +5837,7 @@ function Zenith:Window(config)
 					if btn:FindFirstChild("Title") then btn.Title.TextColor3 = t.Text end
 				end
 			end
-			table.insert(Zenith._ElementRegistry, {name = dropdownName, obj = dropdown, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = dropdownName, obj = dropdown, tab = tabEntry})
 			return dropdown
 		end
 
@@ -5999,7 +5999,7 @@ function Zenith:Window(config)
 			end
 
 			bind:Set(bindDefault)
-			if bindFlag then Zenith.Flags[bindFlag] = bind end
+			if bindFlag then Void.Flags[bindFlag] = bind end
 			function bind:RefreshTheme(t)
 				bindNameLabel.TextColor3 = t.Text
 				bindFrame.BackgroundColor3 = t.Second
@@ -6010,8 +6010,8 @@ function Zenith:Window(config)
 				local s2 = bindBox:FindFirstChildOfClass("UIStroke")
 				if s2 then s2.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = bindName, obj = bind, tab = tabEntry})
-			table.insert(Zenith.Binds, {Name = bindName, Bind = bind, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = bindName, obj = bind, tab = tabEntry})
+			table.insert(Void.Binds, {Name = bindName, Bind = bind, tab = tabEntry})
 			return bind
 		end
 
@@ -6230,8 +6230,8 @@ function Zenith:Window(config)
 			end
 
 			colorpicker:Set(colorpicker.Value)
-			if colorFlag then Zenith.Flags[colorFlag] = colorpicker end
-			function colorpicker:RefreshTheme(t)
+			if colorFlag then Void.Flags[colorFlag] = colorpicker end
+			function colorpicker:Void(t)
 				headerNameLabel.TextColor3 = t.Text
 				colorpickerFrame.BackgroundColor3 = t.Second
 				headerDivider.BackgroundColor3 = t.Stroke
@@ -6240,7 +6240,7 @@ function Zenith:Window(config)
 				local s2 = colorPreviewBox:FindFirstChildOfClass("UIStroke")
 				if s2 then s2.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = colorName, obj = colorpicker, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = colorName, obj = colorpicker, tab = tabEntry})
 			return colorpicker
 		end
 
@@ -6384,7 +6384,7 @@ function Zenith:Window(config)
 			end)
 
 			dropdown:Set(dropdownDefault)
-			if dropdownFlag then Zenith.Flags[dropdownFlag] = dropdown end
+			if dropdownFlag then Void.Flags[dropdownFlag] = dropdown end
 			function dropdown:RefreshTheme(t)
 				nameLabel.TextColor3 = t.Text
 				selectedLabel.TextColor3 = t.TextDark
@@ -6398,7 +6398,7 @@ function Zenith:Window(config)
 					if btn:FindFirstChild("Title") then btn.Title.TextColor3 = t.Text end
 				end
 			end
-			table.insert(Zenith._ElementRegistry, {name = dropdownName, obj = dropdown, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = dropdownName, obj = dropdown, tab = tabEntry})
 			return dropdown
 		end
 
@@ -6452,7 +6452,7 @@ function Zenith:Window(config)
 				local s2 = barTrack:FindFirstChildOfClass("UIStroke")
 				if s2 then s2.Color = t.Stroke end
 			end
-			table.insert(Zenith._ElementRegistry, {name = resolvedText, obj = progressObj, tab = tabEntry})
+			table.insert(Void._ElementRegistry, {name = resolvedText, obj = progressObj, tab = tabEntry})
 
 			return progressObj
 		end
@@ -6576,7 +6576,7 @@ function Zenith:Window(config)
 	function windowObject:OpenProfileView(btns)
 		btns = btns or {}
 		local pGui = Instance.new("ScreenGui")
-		pGui.Name = "ZenithProfileView"
+		pGui.Name = "VoidProfileView"
 		pGui.ResetOnSpawn = false
 		pGui.DisplayOrder = 200
 		pGui.IgnoreGuiInset = true
@@ -6689,11 +6689,11 @@ function Zenith:Window(config)
 	windowObject.MakeTab = windowObject.Tab
 
 	task.defer(function()
-    	if Zenith._initDone then return end
-    	Zenith._initDone = true
-    	if Zenith.ShowKeybindList then Zenith:KeybindList(theme) end
-    	if Zenith.ShowTopbar then Zenith:Topbar(theme) end
-    	if Zenith.ShowRadial then Zenith:Radial(theme) end
+    	if Void._initDone then return end
+    	Void._initDone = true
+    	if Void.ShowKeybindList then Void:KeybindList(theme) end
+    	if Void.ShowTopbar then Void:Topbar(theme) end
+    	if Void.ShowRadial then Void:Radial(theme) end
 	end)
 
 	if doStartup and Animations[startupAnim] then
@@ -6707,17 +6707,17 @@ function Zenith:Window(config)
 	return windowObject
 end
 
-function Zenith:Init(theme)
-    if not Zenith.SaveCfg then return end
+function Void:Init(theme)
+    if not Void.SaveCfg then return end
     pcall(function()
-        local configPath = Zenith.Folder .. "/" .. Zenith._CfgFile .. ".json"
+        local configPath = Void.Folder .. "/" .. Void._CfgFile .. ".json"
         if isfile and isfile(configPath) then
             local rawData = readfile(configPath)
             local parsedData = HttpService:JSONDecode(rawData)
             for key, savedValue in pairs(parsedData) do
                 if key:sub(1, 2) ~= "__" then
-                    if Zenith.Flags[key] then
-                        pcall(function() Zenith.Flags[key]:Set(savedValue) end)
+                    if Void.Flags[key] then
+                        pcall(function() Void.Flags[key]:Set(savedValue) end)
                     end
                 end
             end
@@ -6729,13 +6729,13 @@ local _wmGui = nil
 
 local _wmGui = nil
 
-function Zenith:Watermark(title)
+function Void:Watermark(title)
 	if _wmGui and _wmGui.Parent then _wmGui:Destroy() end
 
-	local theme = Zenith._activeTheme or Zenith.Themes.Dark
+	local theme = Void._activeTheme or Void.Themes.Dark
 
 	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = "ZenithWatermark"
+	screenGui.Name = "VoidWatermark"
 	screenGui.ResetOnSpawn = false
 	screenGui.DisplayOrder = 996
 	screenGui.IgnoreGuiInset = true
@@ -6971,40 +6971,40 @@ function Zenith:Watermark(title)
 	return wmObj
 end
 
-Zenith.MakeWindow = Zenith.Window
-Zenith.MakeNotification = Zenith.Notify
+Void.MakeWindow = Void.Window
+Void.MakeNotification = Void.Notify
 
-function Zenith:Destroy()
+function Void:Destroy()
 	local targets = {game:GetService("CoreGui"), LocalPlayer.PlayerGui}
 	for _, target in pairs(targets) do
-		for _, guiName in ipairs({"ZenithUI", "ZenithNotifications", "ZenithNotificationsClassic", "ZenithKeybindList", "ZenithTopbar", "ZenithRadial"}) do
+		for _, guiName in ipairs({"VoidUI", "VoidNotifications", "VoidNotificationsClassic", "VoidKeybindList", "VoidTopbar", "VoidRadial"}) do
 			local guiInstance = target:FindFirstChild(guiName)
 			if guiInstance then guiInstance:Destroy() end
 		end
 	end
 	pcall(function()
 		local protectedGui = gethui()
-		for _, guiName in ipairs({"ZenithUI", "ZenithNotifications", "ZenithNotificationsClassic", "ZenithKeybindList", "ZenithTopbar", "ZenithRadial"}) do
+		for _, guiName in ipairs({"VoidUI", "VoidNotifications", "VoidNotificationsClassic", "VoidKeybindList", "VoidTopbar", "VoidRadial"}) do
 			local guiInstance = protectedGui:FindFirstChild(guiName)
 			if guiInstance then guiInstance:Destroy() end
 		end
 	end)
-	table.clear(Zenith.Binds)
-	table.clear(Zenith._Tabs)
-	table.clear(Zenith._ElementRegistry)
+	table.clear(Void.Binds)
+	table.clear(Void._Tabs)
+	table.clear(Void._ElementRegistry)
 	table.clear(notifStack)
-	table.clear(Zenith.OwnerButtons)
-	Zenith._BindListGui = nil
-	Zenith._TopbarGui = nil
-	Zenith._RadialGui = nil
-	Zenith._MainWindowRef = nil
-	Zenith._RestoreRef = nil
-	Zenith._MinimizedRef = nil
-	Zenith._initDone = false
+	table.clear(Void.OwnerButtons)
+	Void._BindListGui = nil
+	Void._TopbarGui = nil
+	Void._RadialGui = nil
+	Void._MainWindowRef = nil
+	Void._RestoreRef = nil
+	Void._MinimizedRef = nil
+	Void._initDone = false
 	if _wmGui and _wmGui.Parent then
 		_wmGui:Destroy()
 		_wmGui = nil
 	end
 end
 
-return Zenith
+return Void
