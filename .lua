@@ -1,3 +1,5 @@
+--V4
+
 local Void = {}
 Void.Version = "1.3.0h"
 Void.Flags = {}
@@ -3104,8 +3106,8 @@ function Void:Window(config)
 	local windowButtonContainer = Instance.new("Frame")
 	windowButtonContainer.BackgroundColor3 = theme.Second
 	windowButtonContainer.BorderSizePixel = 0
-	windowButtonContainer.Size = UDim2.new(0, 105, 0, 30)
-	windowButtonContainer.Position = UDim2.new(1, -115, 0, 10)
+    windowButtonContainer.Size = UDim2.new(0, 105, 0, 30)
+    windowButtonContainer.Position = UDim2.new(1, -150, 0, 10)
 	windowButtonContainer.Parent = topBar
 	addCorner(windowButtonContainer, 0, 7)
 	addStroke(windowButtonContainer, theme.Stroke, 1)
@@ -3176,6 +3178,277 @@ function Void:Window(config)
 	closeIcon.Size = UDim2.new(0, 18, 0, 18)
 	closeIcon.Parent = closeButton
 	
+-- Search Button (rechts von windowButtonContainer)
+local searchOpen_main = false
+local searchGui_main = nil
+
+local searchBtnMain = Instance.new("TextButton")
+searchBtnMain.Text = ""
+searchBtnMain.AutoButtonColor = false
+searchBtnMain.BackgroundColor3 = theme.Second
+searchBtnMain.BorderSizePixel = 0
+searchBtnMain.AnchorPoint = Vector2.new(0, 0.5)
+searchBtnMain.Size = UDim2.new(0, 30, 0, 30)
+searchBtnMain.Position = UDim2.new(1, -143, 0, 10)
+searchBtnMain.ZIndex = 4
+searchBtnMain.Parent = topBar
+addCorner(searchBtnMain, 0, 7)
+addStroke(searchBtnMain, theme.Stroke, 1)
+
+local searchIcoMain = Instance.new("ImageLabel")
+searchIcoMain.Image = "rbxassetid://91129038063259"
+searchIcoMain.BackgroundTransparency = 1
+searchIcoMain.ImageColor3 = theme.TextDark
+searchIcoMain.AnchorPoint = Vector2.new(0.5, 0.5)
+searchIcoMain.Size = UDim2.new(0, 15, 0, 15)
+searchIcoMain.Position = UDim2.new(0.5, 0, 0.5, 0)
+searchIcoMain.ZIndex = 5
+searchIcoMain.Parent = searchBtnMain
+
+local function buildSearchIndex()
+	local index = {}
+	local seen = {}
+	for flagName, flagObj in pairs(Void.Flags) do
+		local tabRef = nil
+		for _, entry in ipairs(Void._ElementRegistry) do
+			if entry.obj == flagObj then tabRef = entry.tab break end
+		end
+		table.insert(index, {key = flagName, obj = flagObj, tab = tabRef})
+		seen[flagObj] = true
+	end
+	for _, entry in ipairs(Void._ElementRegistry) do
+		if not seen[entry.obj] then
+			table.insert(index, {key = entry.name, obj = entry.obj, tab = entry.tab})
+			seen[entry.obj] = true
+		end
+	end
+	return index
+end
+
+local function openMainSearch()
+	if searchGui_main and searchGui_main.Parent then return end
+	searchOpen_main = true
+	tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = accentColor})
+	tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Main})
+
+	local sGui = Instance.new("ScreenGui")
+	sGui.Name = "VoidMainSearch"
+	sGui.ResetOnSpawn = false
+	sGui.DisplayOrder = 500
+	sGui.IgnoreGuiInset = true
+	secGui(sGui)
+	searchGui_main = sGui
+
+	local backdrop = Instance.new("TextButton")
+	backdrop.Text = ""
+	backdrop.BackgroundColor3 = Color3.new(0, 0, 0)
+	backdrop.BackgroundTransparency = 0.6
+	backdrop.BorderSizePixel = 0
+	backdrop.Size = UDim2.new(1, 0, 1, 0)
+	backdrop.ZIndex = 1
+	backdrop.Parent = sGui
+
+	local panel = Instance.new("Frame")
+	panel.BackgroundColor3 = theme.Second
+	panel.BorderSizePixel = 0
+	panel.AnchorPoint = Vector2.new(0.5, 0)
+	panel.Size = UDim2.new(0, 380, 0, 0)
+	panel.Position = UDim2.new(0.5, 0, 0, 60)
+	panel.ClipsDescendants = true
+	panel.ZIndex = 2
+	panel.Parent = sGui
+	addCorner(panel, 0, 10)
+	addStroke(panel, theme.Stroke, 1.5)
+
+	TweenService:Create(panel,
+		TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{Size = UDim2.new(0, 380, 0, 52)}):Play()
+
+	local inputWrapper = Instance.new("Frame")
+	inputWrapper.BackgroundColor3 = theme.Main
+	inputWrapper.BorderSizePixel = 0
+	inputWrapper.AnchorPoint = Vector2.new(0.5, 0)
+	inputWrapper.Size = UDim2.new(1, -20, 0, 32)
+	inputWrapper.Position = UDim2.new(0.5, 0, 0, 10)
+	inputWrapper.ZIndex = 3
+	inputWrapper.Parent = panel
+	addCorner(inputWrapper, 0, 7)
+	addStroke(inputWrapper, theme.Stroke, 1)
+
+	local searchIcoInner = Instance.new("ImageLabel")
+	searchIcoInner.Image = "rbxassetid://91129038063259"
+	searchIcoInner.BackgroundTransparency = 1
+	searchIcoInner.ImageColor3 = theme.TextDark
+	searchIcoInner.AnchorPoint = Vector2.new(0, 0.5)
+	searchIcoInner.Size = UDim2.new(0, 14, 0, 14)
+	searchIcoInner.Position = UDim2.new(0, 10, 0.5, 0)
+	searchIcoInner.ZIndex = 4
+	searchIcoInner.Parent = inputWrapper
+
+	local searchBox_main = Instance.new("TextBox")
+	searchBox_main.BackgroundTransparency = 1
+	searchBox_main.PlaceholderText = "Suchen..."
+	searchBox_main.PlaceholderColor3 = theme.TextDark
+	searchBox_main.Text = ""
+	searchBox_main.Font = Enum.Font.GothamSemibold
+	searchBox_main.TextSize = 13
+	searchBox_main.TextColor3 = theme.Text
+	searchBox_main.TextXAlignment = Enum.TextXAlignment.Left
+	searchBox_main.ClearTextOnFocus = false
+	searchBox_main.Size = UDim2.new(1, -36, 1, 0)
+	searchBox_main.Position = UDim2.new(0, 30, 0, 0)
+	searchBox_main.ZIndex = 4
+	searchBox_main.Parent = inputWrapper
+
+	local resultsHolder = Instance.new("Frame")
+	resultsHolder.BackgroundTransparency = 1
+	resultsHolder.Size = UDim2.new(1, -20, 0, 0)
+	resultsHolder.Position = UDim2.new(0, 10, 0, 50)
+	resultsHolder.AutomaticSize = Enum.AutomaticSize.Y
+	resultsHolder.ZIndex = 3
+	resultsHolder.Parent = panel
+	local resultsLayout = addListLayout(resultsHolder, 4)
+	addPadding(resultsHolder, 0, 8, 0, 0)
+
+	resultsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		local h = resultsLayout.AbsoluteContentSize.Y + 60
+		TweenService:Create(panel,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+			{Size = UDim2.new(0, 380, 0, h)}):Play()
+	end)
+
+	local function closeMainSearch()
+		searchOpen_main = false
+		tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = theme.TextDark})
+		tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Second})
+		TweenService:Create(panel,
+			TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+			{Size = UDim2.new(0, 380, 0, 0)}):Play()
+		task.delay(0.25, function()
+			if sGui and sGui.Parent then sGui:Destroy() end
+			searchGui_main = nil
+		end)
+	end
+
+	backdrop.MouseButton1Click:Connect(closeMainSearch)
+
+	local function runMainSearch(query)
+		for _, child in ipairs(resultsHolder:GetChildren()) do
+			if child:IsA("TextButton") then child:Destroy() end
+		end
+		if query == "" then return end
+		local lower = query:lower()
+		local idx = buildSearchIndex()
+		local results = {}
+		for _, entry in ipairs(idx) do
+			if entry.key:lower():find(lower, 1, true) then
+				table.insert(results, entry)
+			end
+		end
+		for i = 1, math.min(#results, 6) do
+			local entry = results[i]
+			local row = Instance.new("TextButton")
+			row.Text = ""
+			row.AutoButtonColor = false
+			row.BackgroundColor3 = theme.Main
+			row.BackgroundTransparency = 0.3
+			row.BorderSizePixel = 0
+			row.Size = UDim2.new(1, 0, 0, 34)
+			row.ZIndex = 4
+			row.Parent = resultsHolder
+			addCorner(row, 0, 6)
+
+			local nameLbl = Instance.new("TextLabel")
+			nameLbl.Text = entry.key
+			nameLbl.Font = Enum.Font.GothamSemibold
+			nameLbl.TextSize = 12
+			nameLbl.TextColor3 = theme.Text
+			nameLbl.BackgroundTransparency = 1
+			nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+			nameLbl.Size = UDim2.new(1, -50, 1, 0)
+			nameLbl.Position = UDim2.new(0, 12, 0, 0)
+			nameLbl.ZIndex = 5
+			nameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+			nameLbl.Parent = row
+
+			if entry.obj then
+				local badge = Instance.new("TextLabel")
+				badge.Font = Enum.Font.GothamBold
+				badge.TextSize = 10
+				badge.BackgroundTransparency = 1
+				badge.TextXAlignment = Enum.TextXAlignment.Right
+				badge.Size = UDim2.new(0, 36, 1, 0)
+				badge.Position = UDim2.new(1, -10, 0, 0)
+				badge.ZIndex = 5
+				badge.Parent = row
+				if entry.obj.Type == "Toggle" then
+					badge.Text = entry.obj.Value and "ON" or "OFF"
+					badge.TextColor3 = entry.obj.Value and Color3.fromRGB(80, 200, 120) or Color3.fromRGB(150,150,165)
+				elseif entry.obj.Type == "Slider" then
+					badge.Text = tostring(entry.obj.Value)
+					badge.TextColor3 = theme.TextDark
+				else
+					badge.Text = entry.obj.Type or ""
+					badge.TextColor3 = theme.TextDark
+				end
+			end
+
+			row.MouseEnter:Connect(function()
+				tweenObj(row, 0.1, nil, nil, {BackgroundTransparency = 0.1})
+			end)
+			row.MouseLeave:Connect(function()
+				tweenObj(row, 0.1, nil, nil, {BackgroundTransparency = 0.3})
+			end)
+			row.MouseButton1Click:Connect(function()
+				local targetTab = entry.tab
+				closeMainSearch()
+				task.delay(0.28, function()
+					if targetTab then
+						if Void._RestoreRef then pcall(Void._RestoreRef) end
+						pcall(targetTab.selectFn)
+					elseif entry.obj and entry.obj.Type == "Toggle" and entry.obj.Set then
+						entry.obj:Set(not entry.obj.Value)
+					end
+				end)
+			end)
+		end
+	end
+
+	searchBox_main:GetPropertyChangedSignal("Text"):Connect(function()
+		runMainSearch(searchBox_main.Text)
+	end)
+
+	task.defer(function() searchBox_main:CaptureFocus() end)
+
+	searchBox_main.FocusLost:Connect(function(enter)
+		if not enter then
+			task.wait(0.15)
+			if searchOpen_main then closeMainSearch() end
+		end
+	end)
+end
+
+searchBtnMain.MouseEnter:Connect(function()
+	if not searchOpen_main then
+		tweenObj(searchIcoMain, 0.15, nil, nil, {ImageColor3 = theme.Text})
+	end
+end)
+searchBtnMain.MouseLeave:Connect(function()
+	if not searchOpen_main then
+		tweenObj(searchIcoMain, 0.15, nil, nil, {ImageColor3 = theme.TextDark})
+	end
+end)
+searchBtnMain.MouseButton1Click:Connect(function()
+	if searchOpen_main then
+		if searchGui_main and searchGui_main.Parent then searchGui_main:Destroy() searchGui_main = nil end
+		searchOpen_main = false
+		tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = theme.TextDark})
+		tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Second})
+	else
+		openMainSearch()
+	end
+end)
+
 	local resActive = false
 	local resCleanup = nil
 	
