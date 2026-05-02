@@ -1,3 +1,4 @@
+--V89
 local Void = {}
 Void.Version = "1.3.0h"
 Void.Flags = {}
@@ -3459,7 +3460,7 @@ end
 	resBtn.MouseButton1Click:Connect(function()
 		resActive = not resActive
 		if resActive then
-			resCleanup = makeResizable(mainWindow, {
+			resCleanup = makeRes(mainWindow, {
 				minWidth = 400,
 				minHeight = 250,
 				onRes = function(w, h)
