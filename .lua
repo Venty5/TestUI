@@ -1,5 +1,3 @@
---V4
-
 local Void = {}
 Void.Version = "1.3.0h"
 Void.Flags = {}
@@ -3106,24 +3104,51 @@ function Void:Window(config)
 	local windowButtonContainer = Instance.new("Frame")
 	windowButtonContainer.BackgroundColor3 = theme.Second
 	windowButtonContainer.BorderSizePixel = 0
-    windowButtonContainer.Size = UDim2.new(0, 105, 0, 30)
-    windowButtonContainer.Position = UDim2.new(1, -150, 0, 10)
+    windowButtonContainer.Size = UDim2.new(0, 140, 0, 30)
+    windowButtonContainer.Position = UDim2.new(1, -155, 0, 10)
 	windowButtonContainer.Parent = topBar
 	addCorner(windowButtonContainer, 0, 7)
 	addStroke(windowButtonContainer, theme.Stroke, 1)
+
+    local searchDivider0 = Instance.new("Frame")
+searchDivider0.BackgroundColor3 = theme.Stroke
+searchDivider0.BorderSizePixel = 0
+searchDivider0.Size = UDim2.new(0, 1, 1, 0)
+searchDivider0.Position = UDim2.new(1/4, 0, 0, 0)
+searchDivider0.Parent = windowButtonContainer
+
+local searchBtn = Instance.new("TextButton")
+searchBtn.Text = ""
+searchBtn.AutoButtonColor = false
+searchBtn.BackgroundTransparency = 1
+searchBtn.BorderSizePixel = 0
+searchBtn.Size = UDim2.new(1/4, 0, 1, 0)
+searchBtn.Position = UDim2.new(0, 0, 0, 0)
+searchBtn.Parent = windowButtonContainer
+
+local searchIco = Instance.new("ImageLabel")
+searchIco.Image = "rbxassetid://91129038063259"
+searchIco.BackgroundTransparency = 1
+searchIco.ImageColor3 = theme.Text
+searchIco.Position = UDim2.new(0, 9, 0, 6)
+searchIco.Size = UDim2.new(0, 18, 0, 18)
+searchIco.Parent = searchBtn
+searchBtn.MouseButton1Click:Connect(function()
+    openMainSearch()
+end)
 
 	local buttonDivider1 = Instance.new("Frame")
 	buttonDivider1.BackgroundColor3 = theme.Stroke
 	buttonDivider1.BorderSizePixel = 0
 	buttonDivider1.Size = UDim2.new(0, 1, 1, 0)
-	buttonDivider1.Position = UDim2.new(1/3, 0, 0, 0)
+	buttonDivider1.Position = UDim2.new(2/4, 0, 0, 0)
 	buttonDivider1.Parent = windowButtonContainer
 
 	local buttonDivider2 = Instance.new("Frame")
 	buttonDivider2.BackgroundColor3 = theme.Stroke
 	buttonDivider2.BorderSizePixel = 0
 	buttonDivider2.Size = UDim2.new(0, 1, 1, 0)
-	buttonDivider2.Position = UDim2.new(2/3, 0, 0, 0)
+	buttonDivider2.Position = UDim2.new(3/4, 0, 0, 0)
 	buttonDivider2.Parent = windowButtonContainer
 
 	local minimizeButton = Instance.new("TextButton")
@@ -3131,8 +3156,8 @@ function Void:Window(config)
 	minimizeButton.AutoButtonColor = false
 	minimizeButton.BackgroundTransparency = 1
 	minimizeButton.BorderSizePixel = 0
-	minimizeButton.Size = UDim2.new(1/3, 0, 1, 0)
-	minimizeButton.Position = UDim2.new(0, 0, 0, 0)
+	minimizeButton.Size = UDim2.new(1/4, 0, 1, 0)
+	minimizeButton.Position = UDim2.new(1/4, 0, 0, 0)
 	minimizeButton.Parent = windowButtonContainer
 
 	local minimizeIcon = Instance.new("ImageLabel")
@@ -3148,8 +3173,8 @@ function Void:Window(config)
 	toggleSidebarButton.AutoButtonColor = false
 	toggleSidebarButton.BackgroundTransparency = 1
 	toggleSidebarButton.BorderSizePixel = 0
-	toggleSidebarButton.Size = UDim2.new(1/3, 0, 1, 0)
-	toggleSidebarButton.Position = UDim2.new(1/3, 0, 0, 0)
+	toggleSidebarButton.Size = UDim2.new(1/4, 0, 1, 0)
+	toggleSidebarButton.Position = UDim2.new(2/4, 0, 0, 0)
 	toggleSidebarButton.Parent = windowButtonContainer
 
 	local toggleSidebarIcon = Instance.new("TextLabel")
@@ -3166,8 +3191,8 @@ function Void:Window(config)
 	closeButton.AutoButtonColor = false
 	closeButton.BackgroundTransparency = 1
 	closeButton.BorderSizePixel = 0
-	closeButton.Size = UDim2.new(1/3, 0, 1, 0)
-	closeButton.Position = UDim2.new(2/3, 0, 0, 0)
+	closeButton.Size = UDim2.new(1/4, 0, 1, 0)
+	closeButton.Position = UDim2.new(3/4, 0, 0, 0)
 	closeButton.Parent = windowButtonContainer
 
 	local closeIcon = Instance.new("ImageLabel")
@@ -3181,29 +3206,6 @@ function Void:Window(config)
 -- Search Button (rechts von windowButtonContainer)
 local searchOpen_main = false
 local searchGui_main = nil
-
-local searchBtnMain = Instance.new("TextButton")
-searchBtnMain.Text = ""
-searchBtnMain.AutoButtonColor = false
-searchBtnMain.BackgroundColor3 = theme.Second
-searchBtnMain.BorderSizePixel = 0
-searchBtnMain.AnchorPoint = Vector2.new(0, 0.5)
-searchBtnMain.Size = UDim2.new(0, 30, 0, 30)
-searchBtnMain.Position = UDim2.new(1, -143, 0, 10)
-searchBtnMain.ZIndex = 4
-searchBtnMain.Parent = topBar
-addCorner(searchBtnMain, 0, 7)
-addStroke(searchBtnMain, theme.Stroke, 1)
-
-local searchIcoMain = Instance.new("ImageLabel")
-searchIcoMain.Image = "rbxassetid://91129038063259"
-searchIcoMain.BackgroundTransparency = 1
-searchIcoMain.ImageColor3 = theme.TextDark
-searchIcoMain.AnchorPoint = Vector2.new(0.5, 0.5)
-searchIcoMain.Size = UDim2.new(0, 15, 0, 15)
-searchIcoMain.Position = UDim2.new(0.5, 0, 0.5, 0)
-searchIcoMain.ZIndex = 5
-searchIcoMain.Parent = searchBtnMain
 
 local function buildSearchIndex()
 	local index = {}
@@ -3228,8 +3230,6 @@ end
 local function openMainSearch()
 	if searchGui_main and searchGui_main.Parent then return end
 	searchOpen_main = true
-	tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = accentColor})
-	tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Main})
 
 	local sGui = Instance.new("ScreenGui")
 	sGui.Name = "VoidMainSearch"
@@ -3319,8 +3319,6 @@ local function openMainSearch()
 
 	local function closeMainSearch()
 		searchOpen_main = false
-		tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = theme.TextDark})
-		tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Second})
 		TweenService:Create(panel,
 			TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.In),
 			{Size = UDim2.new(0, 380, 0, 0)}):Play()
@@ -3427,27 +3425,6 @@ local function openMainSearch()
 		end
 	end)
 end
-
-searchBtnMain.MouseEnter:Connect(function()
-	if not searchOpen_main then
-		tweenObj(searchIcoMain, 0.15, nil, nil, {ImageColor3 = theme.Text})
-	end
-end)
-searchBtnMain.MouseLeave:Connect(function()
-	if not searchOpen_main then
-		tweenObj(searchIcoMain, 0.15, nil, nil, {ImageColor3 = theme.TextDark})
-	end
-end)
-searchBtnMain.MouseButton1Click:Connect(function()
-	if searchOpen_main then
-		if searchGui_main and searchGui_main.Parent then searchGui_main:Destroy() searchGui_main = nil end
-		searchOpen_main = false
-		tweenObj(searchIcoMain, 0.18, nil, nil, {ImageColor3 = theme.TextDark})
-		tweenObj(searchBtnMain, 0.18, nil, nil, {BackgroundColor3 = theme.Second})
-	else
-		openMainSearch()
-	end
-end)
 
 	local resActive = false
 	local resCleanup = nil
