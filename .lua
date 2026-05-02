@@ -1,4 +1,3 @@
---V89
 local Void = {}
 Void.Version = "1.3.0h"
 Void.Flags = {}
@@ -3463,7 +3462,7 @@ end
 			resCleanup = makeRes(mainWindow, {
 				minWidth = 400,
 				minHeight = 250,
-				onRes = function(w, h)
+				onResize = function(w, h)
 					local sw = sidebarExpanded and 150 or 50
 					sidebar.Size = UDim2.new(0, sw, 1, -50)
 					if activeTabPage then
